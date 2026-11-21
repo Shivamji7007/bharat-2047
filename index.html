@@ -3,380 +3,449 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>BHARAT 2047: Command & Conquer</title>
+  <title>BHARAT 2047 // 3D DIGITAL TWIN EXPLORER</title>
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none; }
-    body { background: #040812; color: #eef4ff; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+    body { background: #030711; color: #eef4ff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* Top HUD */
+    /* Top Command HUD */
     .hud {
       display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
-      padding: 10px 18px; background: rgba(10, 18, 36, 0.95); border-bottom: 1px solid #1e3a6e;
-      z-index: 10; gap: 10px;
+      padding: 8px 16px; background: linear-gradient(90deg, #071022, #0d1f40, #071022);
+      border-bottom: 2px solid #ff9933; box-shadow: 0 4px 20px rgba(255, 153, 51, 0.25);
+      z-index: 100; gap: 8px;
     }
-    .brand { font-weight: 800; font-size: 1.15rem; letter-spacing: 1px; background: linear-gradient(90deg, #ff9933, #fff, #38ef7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .metrics { display: flex; gap: 18px; flex-wrap: wrap; }
-    .metric { font-size: 0.85rem; color: #8ca0c4; }
-    .metric b { display: block; font-size: 1.05rem; color: #00e5ff; }
+    .brand {
+      font-weight: 900; font-size: 1.02rem; letter-spacing: 1px;
+      background: linear-gradient(90deg, #ff9933, #ffffff, #38ef7d);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .metrics { display: flex; gap: 12px; flex-wrap: wrap; }
+    .metric {
+      background: rgba(0, 229, 255, 0.07); border: 1px solid rgba(0, 229, 255, 0.28);
+      padding: 4px 10px; border-radius: 7px; font-size: 0.66rem; color: #8ca0c4; text-transform: uppercase;
+    }
+    .metric b { display: block; font-size: 0.92rem; color: #00e5ff; }
     .metric.gdp b { color: #38ef7d; }
     .metric.rank b { color: #ffd700; }
 
-    /* Main Game Viewport */
-    .stage { position: relative; flex: 1; width: 100%; overflow: hidden; }
-    canvas { display: block; width: 100%; height: 100%; }
+    /* City Teleport Bar */
+    .nav-bar {
+      display: flex; gap: 6px; padding: 7px 12px; background: #050c1a;
+      border-bottom: 1px solid #1a3360; overflow-x: auto; z-index: 100; align-items: center;
+    }
+    .nav-label { font-size: 0.7rem; color: #ff9933; font-weight: 800; white-space: nowrap; }
+    .pill {
+      padding: 5px 10px; border-radius: 6px; border: 1px solid #23437a;
+      background: #0a162e; color: #cbd5e1; font-size: 0.74rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap; transition: 0.15s;
+    }
+    .pill:hover, .pill.active {
+      background: #ff9933; color: #040812; border-color: #ff9933;
+      box-shadow: 0 0 12px rgba(255, 153, 51, 0.5);
+    }
+    .pill.scan-live {
+      background: rgba(56, 239, 125, 0.14); border-color: #38ef7d; color: #38ef7d;
+    }
+    .pill.scan-live:hover { background: #38ef7d; color: #040812; }
 
-    /* Bottom Action Dock */
-    .dock {
-      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 10px; background: rgba(8, 15, 30, 0.9);
-      padding: 10px 14px; border-radius: 16px; border: 1px solid #264885;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.7); z-index: 10; max-width: 95vw; overflow-x: auto;
-    }
-    .hub-card {
-      background: #0e1b36; border: 1px solid #1f3b70; border-radius: 10px;
-      padding: 8px 12px; min-width: 145px; cursor: pointer; transition: 0.15s; text-align: left;
-    }
-    .hub-card.active { border-color: #ff9933; box-shadow: 0 0 14px rgba(255,153,51,0.4); transform: translateY(-3px); }
-    .hub-card h4 { font-size: 0.85rem; color: #fff; }
-    .hub-card p { font-size: 0.72rem; color: #8ca0c4; margin: 2px 0; }
-    .hub-card span { font-size: 0.78rem; font-weight: 700; color: #38ef7d; }
+    /* 3D Viewport */
+    .workspace { position: relative; flex: 1; display: flex; overflow: hidden; }
+    #map { flex: 1; height: 100%; background: #030711; }
 
-    /* Floating Prompt */
-    .prompt {
-      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-      background: rgba(255, 153, 51, 0.16); border: 1px solid #ff9933; color: #ffcf9e;
-      padding: 8px 16px; border-radius: 99px; font-size: 0.85rem; font-weight: 600;
-      pointer-events: none; text-align: center;
+    /* 3D Marker Pins */
+    .pin-3d {
+      padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800;
+      color: #040812; border: 2px solid #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.7);
+      cursor: pointer; white-space: nowrap; transition: transform 0.15s;
     }
-    .alert-banner {
-      position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
-      background: rgba(239, 68, 68, 0.92); color: #fff; padding: 8px 18px;
-      border-radius: 10px; font-weight: 700; font-size: 0.88rem; display: none;
-      animation: pulse 0.8s infinite alternate;
+    .pin-3d:hover { transform: scale(1.15); z-index: 99; }
+
+    /* Right Inspector Panel */
+    .drawer {
+      position: absolute; top: 12px; right: 12px; width: 340px; max-width: 92vw;
+      max-height: calc(100% - 24px); overflow-y: auto;
+      background: rgba(7, 14, 29, 0.94); border: 1.5px solid #00e5ff; border-radius: 14px;
+      padding: 15px; box-shadow: 0 0 28px rgba(0, 229, 255, 0.25); z-index: 50;
     }
-    @keyframes pulse { from { transform: translateX(-50%) scale(1); } to { transform: translateX(-50%) scale(1.05); } }
+    .badge {
+      display: inline-block; padding: 3px 8px; border-radius: 5px;
+      font-size: 0.68rem; font-weight: 800; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .drawer h2 { font-size: 1.02rem; color: #fff; line-height: 1.3; }
+    .drawer .loc { font-size: 0.76rem; color: #ff9933; font-weight: 700; margin: 3px 0 8px; }
+    .drawer p { font-size: 0.79rem; color: #cbd5e1; line-height: 1.45; margin-bottom: 10px; }
+
+    .data-box {
+      background: rgba(0, 229, 255, 0.07); border-left: 3px solid #00e5ff;
+      padding: 8px 10px; border-radius: 6px; font-size: 0.76rem; color: #e2e8f0; margin-bottom: 10px;
+    }
+    .data-box b { color: #00e5ff; display: block; margin-bottom: 2px; }
+
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .mini-stat { background: #0c1933; padding: 8px; border-radius: 8px; border: 1px solid #1d396e; }
+    .mini-stat span { font-size: 0.65rem; color: #8ca0c4; text-transform: uppercase; display: block; }
+    .mini-stat b { font-size: 0.88rem; color: #38ef7d; }
+
+    .btn-primary {
+      width: 100%; padding: 10px; border-radius: 9px; border: none;
+      background: linear-gradient(90deg, #ff9933, #ff7700); color: #040812;
+      font-weight: 900; font-size: 0.82rem; cursor: pointer; margin-bottom: 7px;
+    }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-secondary {
+      width: 100%; padding: 9px; border-radius: 9px; border: 1px solid #00e5ff;
+      background: rgba(0, 229, 255, 0.08); color: #00e5ff; font-weight: 700; font-size: 0.78rem; cursor: pointer;
+    }
+    .btn-secondary:hover { background: #00e5ff; color: #040812; }
+
+    /* Controls Guide */
+    .controls-hud {
+      position: absolute; bottom: 12px; left: 12px; z-index: 40;
+      background: rgba(6, 13, 28, 0.9); border: 1px solid #264885;
+      padding: 7px 12px; border-radius: 8px; font-size: 0.72rem; color: #94a3b8;
+    }
+    .controls-hud b { color: #00e5ff; }
   </style>
 </head>
 <body>
   <div class="hud">
-    <div class="brand">🇮🇳 BHARAT 2047 // COMMAND</div>
+    <div class="brand">🇮🇳 BHARAT 2047 // 3D DIGITAL TWIN</div>
     <div class="metrics">
-      <div class="metric">FUNDS<b id="funds">₹250 Cr</b></div>
-      <div class="metric gdp">INDIA GDP<b id="gdp">$4.30 T</b></div>
-      <div class="metric rank">GLOBAL RANK<b id="rank">#4</b></div>
-      <div class="metric">OUTPUT<b id="gps">₹0 Cr/s</b></div>
+      <div class="metric">R&D Budget<b id="funds">₹500 Cr</b></div>
+      <div class="metric gdp">Bharat GDP<b id="gdp">$4.30 T</b></div>
+      <div class="metric rank">Global Rank<b id="rank">#4 (Target: #1 > $29.2T)</b></div>
+      <div class="metric">Real POIs Scanned<b id="poiCount">10 Hubs</b></div>
     </div>
   </div>
 
-  <div class="stage">
-    <canvas id="gameCanvas"></canvas>
-    <div class="prompt" id="promptText">Use WASD / Arrows or Click Map to Fly Rover • Press SPACE to Build/Upgrade</div>
-    <div class="alert-banner" id="alertBanner">⚠️ CYBER THREAT DETECTED! Fly Rover to Flashing Node to Defend!</div>
-    <div class="dock" id="dock"></div>
+  <div class="nav-bar" id="cityBar"></div>
+
+  <div class="workspace">
+    <div id="map"></div>
+    <div class="controls-hud">
+      <b>3D Flight Controls:</b> WASD / Arrows = Fly • Q / E = Rotate 360° • Right-Drag = Tilt 3D Buildings • Click <b>Scan Live Area</b> for real Hospitals, Schools & Factories!
+    </div>
+    <div class="drawer" id="drawer"></div>
   </div>
 
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
   <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    let W, H;
-
-    function resize() {
-      W = canvas.width = canvas.parentElement.clientWidth;
-      H = canvas.height = canvas.parentElement.clientHeight;
-    }
-    window.addEventListener('resize', resize);
-    resize();
-
-    // Synthesized Sound Engine (Zero external files)
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playTone(freq, type, duration, vol = 0.08) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.start(); osc.stop(audioCtx.currentTime + duration);
-    }
-
-    // Game State
-    const state = {
-      funds: 250,
-      gdp: 4.30,
-      gps: 0,
-      shake: 0,
-      rover: { x: 0.5, y: 0.52, tx: 0.5, ty: 0.52, angle: 0 },
-      hubs: [
-        { id: 'ladakh', name: 'Ladakh Solar Grid', rx: 0.46, ry: 0.16, level: 0, cost: 150, income: 35, gdp: 0.3, color: '#38ef7d', threat: false },
-        { id: 'delhi', name: 'Delhi Quantum AI', rx: 0.48, ry: 0.31, level: 1, cost: 200, income: 45, gdp: 0.4, color: '#00e5ff', threat: false },
-        { id: 'dholera', name: 'Dholera Chip Fab', rx: 0.33, ry: 0.48, level: 0, cost: 500, income: 140, gdp: 1.1, color: '#ff9933', threat: false },
-        { id: 'bengaluru', name: 'Bengaluru Space-Tech', rx: 0.46, ry: 0.72, level: 0, cost: 1200, income: 380, gdp: 2.5, color: '#a855f7', threat: false },
-        { id: 'sriharikota', name: 'ISRO Heavy Port', rx: 0.54, ry: 0.75, level: 0, cost: 3000, income: 1100, gdp: 5.5, color: '#f43f5e', threat: false }
-      ],
-      particles: [],
-      rockets: [],
-      keys: {}
-    };
-
-    // Stylized India Polygon Coordinates (Normalized 0..1)
-    const indiaOutline = [
-      [0.45, 0.08], [0.51, 0.13], [0.54, 0.22], [0.62, 0.29], [0.76, 0.30],
-      [0.83, 0.26], [0.85, 0.34], [0.77, 0.41], [0.70, 0.39], [0.67, 0.47],
-      [0.60, 0.56], [0.55, 0.69], [0.49, 0.87], [0.45, 0.86], [0.39, 0.68],
-      [0.36, 0.53], [0.27, 0.50], [0.29, 0.43], [0.36, 0.38], [0.39, 0.26],
-      [0.41, 0.14]
+    // Premier Real Indian Hubs (3D Fly-To Targets)
+    const hubs = [
+      {
+        id: 'delhi', city: 'New Delhi (IITD / AIIMS / DRDO)',
+        name: 'IIT Delhi, AIIMS & DRDO National Sector',
+        type: 'Premier Institute & Hospital Hub',
+        lat: 28.5562, lng: 77.1980, zoom: 15.2, pitch: 62, bearing: -20,
+        color: '#38ef7d', level: 1, cost: 250, income: 75, gdp: 0.50,
+        desc: '3D Digital Twin of South Delhi’s premier R&D corridor housing IIT Delhi, AIIMS Medical Research, and DRDO defense labs.',
+        realData: 'Coordinates: 28.55°N, 77.19°E | Focus: Sovereign AI, Biomedical Robotics, Radar & Missile Avionics.'
+      },
+      {
+        id: 'bengaluru', city: 'Bengaluru (IISc / ISRO HQ)',
+        name: 'IISc Bengaluru & Aerospace Park',
+        type: 'Deep-Tech & Space Research',
+        lat: 13.0219, lng: 77.5671, zoom: 15.4, pitch: 64, bearing: 25,
+        color: '#a855f7', level: 1, cost: 280, income: 85, gdp: 0.60,
+        desc: 'India’s Silicon Valley & Aerospace capital where IISc, ISRO Antariksh Bhavan, and HAL build quantum computers and fighter jets.',
+        realData: 'Coordinates: 13.02°N, 77.56°E | Focus: Param Pravega Supercomputer, Quantum Labs & Tejas Mk2.'
+      },
+      {
+        id: 'mumbai', city: 'Mumbai (BARC / IIT Bombay)',
+        name: 'IIT Bombay & Powai Innovation District',
+        type: 'Nuclear, FinTech & Engineering',
+        lat: 19.1334, lng: 72.9133, zoom: 15.3, pitch: 65, bearing: -35,
+        color: '#3b82f6', level: 0, cost: 400, income: 130, gdp: 0.90,
+        desc: 'High-density 3D urban twin of Powai & Trombay featuring IIT Bombay, BARC Nuclear Reactors, and India’s financial capital.',
+        realData: 'Coordinates: 19.13°N, 72.91°E | Focus: Thorium Reactors, FinTech Infrastructure & Semiconductor Design.'
+      },
+      {
+        id: 'chennai', city: 'Chennai (IIT Madras / EV Hub)',
+        name: 'IIT Madras Research Park & Industrial Belt',
+        type: 'Semiconductors & Smart Factories',
+        lat: 12.9915, lng: 80.2337, zoom: 15.3, pitch: 60, bearing: 15,
+        color: '#00e5ff', level: 0, cost: 350, income: 115, gdp: 0.78,
+        desc: 'India’s top deep-tech hardware and EV manufacturing belt, home to SHAKTI indigenous microprocessors and 3D-printed rockets.',
+        realData: 'Coordinates: 12.99°N, 80.23°E | Focus: RISC-V Chips, Hyperloop & Automotive Giga-Factories.'
+      },
+      {
+        id: 'gujarat', city: 'Ahmedabad / GIFT City & Dholera',
+        name: 'GIFT City FinTech & Semiconductor Corridor',
+        type: 'Smart City & Chip Fab Zone',
+        lat: 23.1594, lng: 72.6836, zoom: 15.2, pitch: 62, bearing: 10,
+        color: '#ff9933', level: 0, cost: 550, income: 180, gdp: 1.25,
+        desc: 'Next-gen futuristic 3D skyline of GIFT City & Dholera SIR—India’s hub for 3nm semiconductor wafer fabs and global finance.',
+        realData: 'Coordinates: 23.15°N, 72.68°E | Focus: Commercial Chip Fabs, Green Hydrogen & Global Bullion Exchange.'
+      },
+      {
+        id: 'sriharikota', city: 'Sriharikota (ISRO Spaceport)',
+        name: 'Satish Dhawan Space Centre (SDSC SHAR)',
+        type: 'Orbital Launch Complex',
+        lat: 13.7200, lng: 80.2266, zoom: 14.5, pitch: 58, bearing: 0,
+        color: '#f43f5e', level: 0, cost: 750, income: 260, gdp: 1.80,
+        desc: 'India’s primary rocket launchport on the Bay of Bengal coast launching LVM3, Gaganyaan, and commercial satellite constellations.',
+        realData: 'Coordinates: 13.72°N, 80.22°E | Focus: Reusable Launch Vehicles & Bharatiya Antariksh Station.'
+      }
     ];
 
-    function spawnParticles(x, y, color, text = '') {
-      for (let i = 0; i < 14; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const s = 1 + Math.random() * 3.5;
-        state.particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, color, text: i === 0 ? text : '' });
-      }
-    }
+    const state = {
+      funds: 500,
+      gdp: 4.30,
+      selected: hubs[0],
+      scannedCount: hubs.length,
+      liveMarkers: []
+    };
 
-    function launchRocket(x, y) {
-      state.rockets.push({ x, y, vy: -1.5, trail: [] });
-      playTone(140, 'sawtooth', 0.8, 0.1);
-      state.shake = 8;
-    }
-
-    function interactWithNearestHub() {
-      let nearest = null, minD = 999;
-      state.hubs.forEach(h => {
-        const d = Math.hypot((h.rx - state.rover.x) * W, (h.ry - state.rover.y) * H);
-        if (d < minD) { minD = d; nearest = h; }
-      });
-
-      if (!nearest || minD > 75) {
-        // Mine R&D in open field
-        const gain = 15 + state.hubs.reduce((s, h) => s + h.level * 8, 0);
-        state.funds += gain;
-        spawnParticles(state.rover.x * W, state.rover.y * H, '#00e5ff', `+₹${gain} Cr`);
-        playTone(520, 'sine', 0.12, 0.05);
-        return;
-      }
-
-      // Clear Cyber Threat for Huge Bonus
-      if (nearest.threat) {
-        nearest.threat = false;
-        const reward = Math.round(nearest.cost * 0.6);
-        state.funds += reward;
-        state.gdp += 0.5;
-        spawnParticles(nearest.rx * W, nearest.ry * H, '#38ef7d', `DEFENDED! +₹${reward} Cr`);
-        playTone(780, 'triangle', 0.3, 0.1);
-        document.getElementById('alertBanner').style.display = 'none';
-        return;
-      }
-
-      // Build / Upgrade Hub
-      if (state.funds >= nearest.cost) {
-        state.funds -= nearest.cost;
-        nearest.level++;
-        state.gdp += nearest.gdp;
-        nearest.cost = Math.round(nearest.cost * 1.48);
-        spawnParticles(nearest.rx * W, nearest.ry * H, nearest.color, `LVL ${nearest.level} UPGRADE!`);
-        playTone(440, 'square', 0.25, 0.08);
-        state.shake = 5;
-        if (nearest.id === 'sriharikota') launchRocket(nearest.rx * W, nearest.ry * H);
-        renderDock();
-      } else {
-        playTone(160, 'sawtooth', 0.15, 0.06);
-        spawnParticles(nearest.rx * W, nearest.ry * H, '#ef4444', 'Need More Funds!');
-      }
-    }
-
-    // Input Handling
-    window.addEventListener('keydown', e => {
-      state.keys[e.code] = true;
-      if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); interactWithNearestHub(); }
-    });
-    window.addEventListener('keyup', e => state.keys[e.code] = false);
-
-    canvas.addEventListener('click', e => {
-      const rect = canvas.getBoundingClientRect();
-      state.rover.tx = (e.clientX - rect.left) / W;
-      state.rover.ty = (e.clientY - rect.top) / H;
-      playTone(320, 'sine', 0.08, 0.03);
+    // Initialize 3D MapLibre GL Engine (Free OpenFreeMap Dark 3D Vector Tiles)
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://tiles.openfreemap.org/styles/dark',
+      center: [hubs[0].lng, hubs[0].lat],
+      zoom: hubs[0].zoom,
+      pitch: hubs[0].pitch,
+      bearing: hubs[0].bearing,
+      antialias: true
     });
 
-    function renderDock() {
-      const dock = document.getElementById('dock');
-      dock.innerHTML = '';
-      state.hubs.forEach(h => {
-        const card = document.createElement('div');
-        card.className = 'hub-card';
-        card.innerHTML = `
-          <h4>${h.name} [Lv.${h.level}]</h4>
-          <p>+₹${h.income * Math.max(1, h.level)} Cr/s | +$${h.gdp}T</p>
-          <span>Upgrade: ₹${h.cost} Cr</span>
-        `;
-        card.onclick = () => {
-          state.rover.tx = h.rx; state.rover.ty = h.ry;
-          setTimeout(interactWithNearestHub, 350);
-        };
-        dock.appendChild(card);
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'bottom-right');
+
+    // Add 3D Extruded Buildings Layer once style loads
+    map.on('load', () => {
+      const layers = map.getStyle().layers;
+      let labelLayerId;
+      for (let i = 0; i < layers.length; i++) {
+        if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+          labelLayerId = layers[i].id;
+          break;
+        }
+      }
+
+      map.addLayer({
+        id: '3d-buildings',
+        source: 'openmaptiles',
+        'source-layer': 'building',
+        type: 'fill-extrusion',
+        minzoom: 13,
+        paint: {
+          'fill-extrusion-color': [
+            'interpolate', ['linear'], ['get', 'render_height'],
+            0, '#0f2347',
+            30, '#1d4ed8',
+            80, '#00e5ff',
+            150, '#ff9933'
+          ],
+          'fill-extrusion-height': ['get', 'render_height'],
+          'fill-extrusion-base': ['get', 'render_min_height'],
+          'fill-extrusion-opacity': 0.88
+        }
+      }, labelLayerId);
+
+      // Render Hero Hub 3D Pins
+      hubs.forEach(h => {
+        const el = document.createElement('div');
+        el.className = 'pin-3d';
+        el.style.background = h.color;
+        el.textContent = `🏛️ ${h.city.split(' ')[0]}`;
+        el.onclick = () => selectHub(h);
+
+        new maplibregl.Marker({ element: el })
+          .setLngLat([h.lng, h.lat])
+          .addTo(map);
       });
+    });
+
+    // Live OpenStreetMap Overpass API Scanner (Fetches REAL Hospitals, Schools, Universities & Factories in current 3D view!)
+    async function scanLiveArea() {
+      const btn = document.getElementById('scanBtn');
+      btn.textContent = '📡 Scanning Real Buildings via Satellite...';
+      btn.disabled = true;
+
+      const c = map.getCenter();
+      const radius = 3500; // 3.5 km radius around current camera
+      const query = `
+        [out:json][timeout:12];
+        (
+          node["amenity"~"hospital|university|college|school"](around:${radius},${c.lat},${c.lng});
+          way["amenity"~"hospital|university|college"](around:${radius},${c.lat},${c.lng});
+          way["man_made"="works"](around:${radius},${c.lat},${c.lng});
+          way["landuse"="industrial"](around:${radius},${c.lat},${c.lng});
+        );
+        out center 25;
+      `;
+
+      try {
+        const res = await fetch('https://overpass-api.de/api/interpreter', {
+          method: 'POST',
+          body: query
+        });
+        const data = await res.json();
+
+        // Clear old scanned pins
+        state.liveMarkers.forEach(m => m.remove());
+        state.liveMarkers = [];
+
+        let added = 0;
+        data.elements.forEach(el => {
+          const lat = el.lat || (el.center && el.center.lat);
+          const lng = el.lon || (el.center && el.center.lon);
+          const tags = el.tags || {};
+          const name = tags.name || tags['name:en'];
+          if (!lat || !lng || !name) return;
+
+          let category = 'Institution';
+          let badgeColor = '#38ef7d';
+          let icon = '🏫';
+          if (tags.amenity === 'hospital') { category = 'Real Hospital'; badgeColor = '#f43f5e'; icon = '🏥'; }
+          else if (tags.amenity === 'university' || tags.amenity === 'college') { category = 'Real University / Institute'; badgeColor = '#00e5ff'; icon = '🎓'; }
+          else if (tags.man_made === 'works' || tags.landuse === 'industrial') { category = 'Real Factory / Industrial Hub'; badgeColor = '#ff9933'; icon = '🏭'; }
+
+          const pin = document.createElement('div');
+          pin.className = 'pin-3d';
+          pin.style.background = badgeColor;
+          pin.textContent = `${icon} ${name.slice(0, 22)}`;
+          pin.onclick = () => {
+            state.selected = {
+              id: 'live_' + el.id,
+              city: `${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`,
+              name: name,
+              type: `${category} (Live OpenStreetMap Data)`,
+              color: badgeColor,
+              level: 1, cost: 150, income: 45, gdp: 0.25,
+              desc: `Verified real-world ${category.toLowerCase()} mapped in India's 3D Digital Twin. Operator: ${tags.operator || 'Public / Private Sector'}.`,
+              realData: `Address/Sector: ${tags['addr:street'] || tags['addr:city'] || 'Verified OSM Sector'} | Type: ${tags.amenity || tags.landuse || 'Industrial'}`
+            };
+            renderDrawer();
+          };
+
+          const marker = new maplibregl.Marker({ element: pin }).setLngLat([lng, lat]).addTo(map);
+          state.liveMarkers.push(marker);
+          added++;
+        });
+
+        state.scannedCount = hubs.length + added;
+        state.funds += added * 15;
+        document.getElementById('poiCount').textContent = `${state.scannedCount} Real Places`;
+        btn.textContent = `✅ Found ${added} Real Places (+₹${added * 15} Cr)!`;
+      } catch (err) {
+        btn.textContent = '⚠️ Retry Scan (Zoom into a City)';
+      }
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = '📡 Scan Real Hospitals, Schools & Factories Here';
+      }, 3000);
     }
 
-    // Random Cyber Threat Event every 22 seconds
-    setInterval(() => {
-      const activeHubs = state.hubs.filter(h => h.level > 0 && !h.threat);
-      if (activeHubs.length > 0 && Math.random() > 0.35) {
-        const target = activeHubs[Math.floor(Math.random() * activeHubs.length)];
-        target.threat = true;
-        document.getElementById('alertBanner').style.display = 'block';
-        playTone(220, 'sawtooth', 0.4, 0.1);
-      }
-    }, 22000);
-
-    // Passive Income Loop
-    setInterval(() => {
-      let totalGps = 0;
-      state.hubs.forEach(h => {
-        if (!h.threat) totalGps += h.level * h.income;
+    function selectHub(h) {
+      state.selected = h;
+      map.flyTo({
+        center: [h.lng, h.lat],
+        zoom: h.zoom,
+        pitch: h.pitch,
+        bearing: h.bearing,
+        duration: 1600
       });
-      state.gps = totalGps;
-      state.funds += totalGps / 10;
-      state.gdp += totalGps / 120000;
+      renderDrawer();
+    }
 
+    function renderCityBar() {
+      const bar = document.getElementById('cityBar');
+      bar.innerHTML = `<span class="nav-label">🚁 3D SECTORS:</span>`;
+
+      const indiaBtn = document.createElement('button');
+      indiaBtn.className = 'pill';
+      indiaBtn.textContent = '🇮🇳 Orbit India';
+      indiaBtn.onclick = () => map.flyTo({ center: [79.5, 22.0], zoom: 4.5, pitch: 25, bearing: 0, duration: 1400 });
+      bar.appendChild(indiaBtn);
+
+      hubs.forEach(h => {
+        const b = document.createElement('button');
+        b.className = 'pill';
+        b.textContent = h.city.split(' ')[0];
+        b.onclick = () => selectHub(h);
+        bar.appendChild(b);
+      });
+
+      const scanBtn = document.createElement('button');
+      scanBtn.id = 'scanBtn';
+      scanBtn.className = 'pill scan-live';
+      scanBtn.textContent = '📡 Scan Real Hospitals, Schools & Factories Here';
+      scanBtn.onclick = scanLiveArea;
+      bar.appendChild(scanBtn);
+    }
+
+    function upgradeCurrent() {
+      const h = state.selected;
+      if (state.funds >= h.cost) {
+        state.funds -= h.cost;
+        h.level++;
+        state.gdp += h.gdp;
+        h.cost = Math.round(h.cost * 1.48);
+        renderDrawer();
+        updateHUD();
+      }
+    }
+
+    function renderDrawer() {
+      const h = state.selected;
+      const drawer = document.getElementById('drawer');
+      drawer.innerHTML = `
+        <div class="badge" style="background:${h.color}28; color:${h.color};">${h.type}</div>
+        <h2>${h.name}</h2>
+        <div class="loc">📍 ${h.city} • TIER ${h.level}</div>
+        <p>${h.desc}</p>
+        <div class="data-box">
+          <b>📊 REAL-WORLD TELEMETRY & DATA:</b>
+          ${h.realData}
+        </div>
+        <div class="stats-row">
+          <div class="mini-stat"><span>Sector Output</span><b>+₹${h.income * Math.max(1, h.level)} Cr/s</b></div>
+          <div class="mini-stat"><span>GDP Impact</span><b>+$${h.gdp} Trillion</b></div>
+        </div>
+        <button class="btn-primary" onclick="upgradeCurrent()" ${state.funds < h.cost ? 'disabled' : ''}>
+          🚀 INVEST & UPGRADE SECTOR (₹${h.cost} Cr)
+        </button>
+        <button class="btn-secondary" onclick="state.funds += 40; updateHUD();">
+          ⚡ COLLECT R&D GRANT (+₹40 Cr)
+        </button>
+      `;
+    }
+
+    function updateHUD() {
       document.getElementById('funds').textContent = '₹' + Math.floor(state.funds).toLocaleString('en-IN') + ' Cr';
       document.getElementById('gdp').textContent = '$' + state.gdp.toFixed(2) + ' T';
-      document.getElementById('gps').textContent = '₹' + totalGps.toLocaleString('en-IN') + ' Cr/s';
-      document.getElementById('rank').textContent = state.gdp >= 35 ? '#1 SUPERPOWER 🏆' : state.gdp >= 20 ? '#2' : state.gdp >= 9 ? '#3' : '#4';
-    }, 100);
 
-    function draw() {
-      ctx.save();
-      if (state.shake > 0) {
-        ctx.translate((Math.random() - 0.5) * state.shake, (Math.random() - 0.5) * state.shake);
-        state.shake *= 0.85;
-      }
-
-      // Background Grid
-      ctx.fillStyle = '#040812';
-      ctx.fillRect(0, 0, W, H);
-      ctx.strokeStyle = 'rgba(30, 58, 110, 0.25)';
-      ctx.lineWidth = 1;
-      for (let x = 0; x < W; x += 45) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-      for (let y = 0; y < H; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
-
-      // Draw India Hologram Map
-      ctx.beginPath();
-      indiaOutline.forEach((pt, i) => {
-        const px = pt[0] * W, py = pt[1] * H;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-      });
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(0, 229, 255, 0.06)';
-      ctx.fill();
-      ctx.strokeStyle = '#00e5ff';
-      ctx.lineWidth = 2.5;
-      ctx.shadowColor = '#00e5ff';
-      ctx.shadowBlur = 15;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // Draw High-Speed Corridors between Hubs
-      ctx.strokeStyle = 'rgba(255, 153, 51, 0.35)';
-      ctx.setLineDash([6, 6]);
-      ctx.beginPath();
-      state.hubs.forEach((h, i) => {
-        const hx = h.rx * W, hy = h.ry * H;
-        i === 0 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
-      });
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Draw Hubs
-      let nearHub = null;
-      state.hubs.forEach(h => {
-        const hx = h.rx * W, hy = h.ry * H;
-        const dist = Math.hypot(hx - state.rover.x * W, hy - state.rover.y * H);
-        if (dist < 75) nearHub = h;
-
-        // Pulse ring
-        ctx.beginPath();
-        ctx.arc(hx, hy, 14 + h.level * 2 + Math.sin(Date.now() / 200) * 3, 0, Math.PI * 2);
-        ctx.fillStyle = h.threat ? 'rgba(239, 68, 68, 0.35)' : h.color + '33';
-        ctx.fill();
-
-        // Core Node
-        ctx.beginPath();
-        ctx.arc(hx, hy, 8 + Math.min(8, h.level), 0, Math.PI * 2);
-        ctx.fillStyle = h.threat ? '#ef4444' : (h.level > 0 ? h.color : '#475569');
-        ctx.fill();
-
-        // Label
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px Segoe UI';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${h.name} (Lv.${h.level})`, hx, hy - 18);
-      });
-
-      // Update Prompt
-      const promptEl = document.getElementById('promptText');
-      if (nearHub) {
-        promptEl.textContent = nearHub.threat
-          ? `🚨 PRESS SPACE TO NEUTRALIZE THREAT AT ${nearHub.name.toUpperCase()}!`
-          : `[SPACE] Build/Upgrade ${nearHub.name} — Cost: ₹${nearHub.cost} Cr`;
-      } else {
-        promptEl.textContent = 'Fly Rover to a City Node (WASD / Arrows / Click) • Press SPACE anywhere to Mine R&D';
-      }
-
-      // Rover Movement
-      const speed = 0.0055;
-      if (state.keys['KeyW'] || state.keys['ArrowUp']) { state.rover.y -= speed; state.rover.ty = state.rover.y; }
-      if (state.keys['KeyS'] || state.keys['ArrowDown']) { state.rover.y += speed; state.rover.ty = state.rover.y; }
-      if (state.keys['KeyA'] || state.keys['ArrowLeft']) { state.rover.x -= speed; state.rover.tx = state.rover.x; }
-      if (state.keys['KeyD'] || state.keys['ArrowRight']) { state.rover.x += speed; state.rover.tx = state.rover.x; }
-
-      state.rover.x += (state.rover.tx - state.rover.x) * 0.08;
-      state.rover.y += (state.rover.ty - state.rover.y) * 0.08;
-
-      // Draw Player Rover
-      const rx = state.rover.x * W, ry = state.rover.y * H;
-      ctx.fillStyle = '#ff9933';
-      ctx.beginPath();
-      ctx.arc(rx, ry, 10, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Draw Rockets
-      state.rockets.forEach((r, idx) => {
-        r.y += r.vy;
-        r.vy *= 1.04;
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(r.x - 3, r.y - 12, 6, 16);
-        ctx.fillStyle = '#ff9933';
-        ctx.beginPath(); ctx.arc(r.x, r.y + 6, 4 + Math.random() * 3, 0, Math.PI * 2); ctx.fill();
-        if (r.y < -30) state.rockets.splice(idx, 1);
-      });
-
-      // Draw Particles
-      state.particles.forEach((p, idx) => {
-        p.x += p.vx; p.y += p.vy; p.life -= 0.025;
-        ctx.globalAlpha = Math.max(0, p.life);
-        ctx.fillStyle = p.color;
-        ctx.fillRect(p.x, p.y, 4, 4);
-        if (p.text) {
-          ctx.font = 'bold 13px Segoe UI';
-          ctx.fillText(p.text, p.x, p.y - 8);
-        }
-        ctx.globalAlpha = 1;
-        if (p.life <= 0) state.particles.splice(idx, 1);
-      });
-
-      ctx.restore();
-      requestAnimationFrame(draw);
+      let rank = '#4 (Next: Germany $4.7T)';
+      if (state.gdp >= 29.2) rank = '#1 GLOBAL SUPERPOWER 🏆';
+      else if (state.gdp >= 19.5) rank = '#2 (Target USA $29.2T)';
+      else if (state.gdp >= 4.7) rank = '#3 (Target China $19.5T)';
+      document.getElementById('rank').textContent = rank;
     }
 
-    renderDock();
-    draw();
+    // Keyboard 3D Flight Controls (WASD + Q/E Rotate)
+    window.addEventListener('keydown', e => {
+      const step = 120;
+      if (e.code === 'KeyW' || e.code === 'ArrowUp') map.panBy([0, -step], { duration: 150 });
+      if (e.code === 'KeyS' || e.code === 'ArrowDown') map.panBy([0, step], { duration: 150 });
+      if (e.code === 'KeyA' || e.code === 'ArrowLeft') map.panBy([-step, 0], { duration: 150 });
+      if (e.code === 'KeyD' || e.code === 'ArrowRight') map.panBy([step, 0], { duration: 150 });
+      if (e.code === 'KeyQ') map.easeTo({ bearing: map.getBearing() - 18, duration: 200 });
+      if (e.code === 'KeyE') map.easeTo({ bearing: map.getBearing() + 18, duration: 200 });
+    });
+
+    setInterval(() => {
+      let total = 0;
+      hubs.forEach(h => total += h.level * h.income);
+      state.funds += total / 10;
+      state.gdp += total / 450000;
+      updateHUD();
+      renderDrawer();
+    }, 1000);
+
+    renderCityBar();
+    renderDrawer();
+    updateHUD();
   </script>
 </body>
 </html>
