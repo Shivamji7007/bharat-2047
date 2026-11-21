@@ -1,1 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BHARAT 2047: Rise of a Superpower</title>
+  <style>
+    :root {
+      --bg: #070d19;
+      --card: #0f192d;
+      --border: #1f3358;
+      --saffron: #ff9933;
+      --green: #138808;
+      --cyan: #00e5ff;
+      --gold: #ffd700;
+      --text: #eef4ff;
+      --muted: #8ca0c4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body {
+      background: radial-gradient(circle at top, #10213e 0%, var(--bg) 70%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .container { max-width: 960px; width: 100%; }
+    header {
+      text-align: center;
+      padding: 18px;
+      background: linear-gradient(135deg, rgba(255,153,51,0.14), rgba(0,229,255,0.08), rgba(19,136,8,0.14));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+    header h1 {
+      font-size: 1.9rem;
+      letter-spacing: 1px;
+      background: linear-gradient(90deg, var(--saffron), #ffffff, #38ef7d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header p { color: var(--muted); font-size: 0.92rem; margin-top: 4px; }
 
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .stat-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+    .stat-value { font-size: 1.45rem; font-weight: 700; margin-top: 4px; color: var(--cyan); }
+    .stat-box.rank .stat-value { color: var(--gold); }
+    .stat-box.gdp .stat-value { color: #38ef7d; }
+
+    .progress-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+    }
+    .progress-top { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px; }
+    .bar-bg { height: 12px; background: #060b14; border-radius: 99px; overflow: hidden; }
+    .bar-fill {
+      height: 100%;
+      width: 8%;
+      background: linear-gradient(90deg, var(--saffron), var(--cyan), #38ef7d);
+      transition: width 0.3s ease;
+    }
+
+    .main-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 16px; }
+    @media (max-width: 740px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .action-panel, .projects-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+    }
+    .core-btn {
+      width: 100%;
+      padding: 26px 16px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #04101e;
+      background: linear-gradient(135deg, var(--saffron), #ffb347);
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(255, 153, 51, 0.3);
+      transition: transform 0.08s ease;
+    }
+    .core-btn:active { transform: scale(0.97); }
+    .hint { text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+
+    .fact-card {
+      margin-top: 16px;
+      background: rgba(0, 229, 255, 0.06);
+      border-left: 3px solid var(--cyan);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+    .fact-card strong { color: var(--cyan); display: block; margin-bottom: 4px; }
+
+    .project-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.02);
+    }
+    .proj-info h3 { font-size: 1rem; color: #fff; }
+    .proj-info p { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .proj-badge { font-size: 0.75rem; color: #38ef7d; font-weight: 600; margin-top: 4px; display: inline-block; }
+
+    .buy-btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--cyan);
+      background: rgba(0, 229, 255, 0.12);
+      color: var(--cyan);
+      font-weight: 700;
+      cursor: pointer;
+      min-width: 115px;
+      transition: 0.2s;
+    }
+    .buy-btn:hover:not(:disabled) { background: var(--cyan); color: #05101f; }
+    .buy-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: #334155; color: #64748b; }
+
+    .share-bar {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+    }
+    .share-btn {
+      flex: 1;
+      padding: 11px;
+      border-radius: 10px;
+      border: none;
+      background: #138808;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🇮🇳 BHARAT 2047: RISE OF A SUPERPOWER</h1>
+      <p>Build India's Tech, Space & Clean Energy Infrastructure to Reach Global Rank #1</p>
+    </header>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">Innovation Capital</div>
+        <div class="stat-value" id="funds">₹100 Cr</div>
+      </div>
+      <div class="stat-box gdp">
+        <div class="stat-label">India GDP</div>
+        <div class="stat-value" id="gdp">$4.30 T</div>
+      </div>
+      <div class="stat-box rank">
+        <div class="stat-label">Global Rank</div>
+        <div class="stat-value" id="rank">#4</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Growth / Sec</div>
+        <div class="stat-value" id="gps">₹0 Cr/s</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span>Mission 2047: Developed Nation Status</span>
+        <span id="pct">8%</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" id="bar"></div></div>
+    </div>
+
+    <div class="main-grid">
+      <div class="action-panel">
+        <button class="core-btn" id="innovateBtn">⚡ INNOVATE & BUILD (+₹25 Cr)</button>
+        <div class="hint">Tip: Press <b>SPACEBAR</b> or Tap rapidly to boost R&D!</div>
+
+        <div class="fact-card">
+          <strong>🚀 Real Bharat Tech Milestone:</strong>
+          <span id="factText">UPI processes over 14 billion real-time digital transactions every month, making India the world leader in fintech infrastructure.</span>
+        </div>
+
+        <div class="share-bar">
+          <button class="share-btn" id="shareBtn">📤 Copy Score to Challenge Friends</button>
+        </div>
+      </div>
+
+      <div class="projects-panel" id="projectList"></div>
+    </div>
+  </div>
+
+  <script>
+    let state = {
+      funds: 100,
+      gdp: 4.30,
+      clickPower: 25,
+      autoIncome: 0,
+      projects: [
+        { id: 'upi', name: 'Digital Public Infra & AI Labs', desc: 'Bengaluru & Hyderabad AI Hubs', cost: 100, income: 20, gdpBoost: 0.15, count: 0, fact: 'IndiaStack & Bhashini AI are bringing digital services to 1.4 billion citizens in 22+ languages.' },
+        { id: 'solar', name: 'Ladakh & Kutch Giga Solar Grid', desc: '100% Clean Renewable Power', cost: 450, income: 95, gdpBoost: 0.45, count: 0, fact: 'Bhagla & Khavda Renewable Parks are among the largest clean energy installations on Earth.' },
+        { id: 'semi', name: 'Dholera Semiconductor Fab', desc: 'Made-in-India 3nm Chips', cost: 1800, income: 420, gdpBoost: 1.25, count: 0, fact: 'Indigenous semiconductor fabs reduce import reliance and power global electronics exports.' },
+        { id: 'isro', name: 'ISRO Heavy Launch & Moon Base', desc: 'Sriharikota Reusable Rockets', cost: 6500, income: 1650, gdpBoost: 3.50, count: 0, fact: 'Chandrayaan-3 made India the first nation to land near the Lunar South Pole at record cost efficiency.' },
+        { id: 'bullet', name: 'National High-Speed Quantum Rail', desc: 'Zero-Emission Logistics Spine', cost: 22000, income: 6000, gdpBoost: 8.00, count: 0, fact: 'High-speed freight and bullet corridors cut logistics costs from 13% to under 8% of GDP.' }
+      ]
+    };
+
+    const fundsEl = document.getElementById('funds');
+    const gdpEl = document.getElementById('gdp');
+    const rankEl = document.getElementById('rank');
+    const gpsEl = document.getElementById('gps');
+    const pctEl = document.getElementById('pct');
+    const barEl = document.getElementById('bar');
+    const factEl = document.getElementById('factText');
+    const listEl = document.getElementById('projectList');
+
+    function formatCr(num) {
+      if (num >= 100000) return '₹' + (num / 100000).toFixed(2) + ' Lakh Cr';
+      return '₹' + Math.floor(num).toLocaleString('en-IN') + ' Cr';
+    }
+
+    function getRank(gdp) {
+      if (gdp >= 35) return '#1 SUPERPOWER 🏆';
+      if (gdp >= 22) return '#2';
+      if (gdp >= 10) return '#3';
+      return '#4';
+    }
+
+    function renderProjects() {
+      listEl.innerHTML = '';
+      state.projects.forEach((p, idx) => {
+        const div = document.createElement('div');
+        div.className = 'project-item';
+        div.innerHTML = `
+          <div class="proj-info">
+            <h3>${p.name} (${p.count})</h3>
+            <p>${p.desc}</p>
+            <span class="proj-badge">+₹${p.income} Cr/s | +$${p.gdpBoost}T GDP</span>
+          </div>
+          <button class="buy-btn" id="buy-${idx}" ${state.funds < p.cost ? 'disabled' : ''}>
+            Build<br>${formatCr(p.cost)}
+          </button>
+        `;
+        listEl.appendChild(div);
+        document.getElementById(`buy-${idx}`).onclick = () => buyProject(idx);
+      });
+    }
+
+    function buyProject(idx) {
+      const p = state.projects[idx];
+      if (state.funds >= p.cost) {
+        state.funds -= p.cost;
+        p.count++;
+        state.autoIncome += p.income;
+        state.gdp += p.gdpBoost;
+        state.clickPower += Math.ceil(p.income * 0.25);
+        p.cost = Math.round(p.cost * 1.45);
+        factEl.textContent = p.fact;
+        document.getElementById('innovateBtn').textContent = `⚡ INNOVATE & BUILD (+₹${state.clickPower} Cr)`;
+        renderProjects();
+        updateUI();
+      }
+    }
+
+    function updateUI() {
+      fundsEl.textContent = formatCr(state.funds);
+      gdpEl.textContent = '$' + state.gdp.toFixed(2) + ' T';
+      rankEl.textContent = getRank(state.gdp);
+      gpsEl.textContent = formatCr(state.autoIncome) + '/s';
+      const progress = Math.min(100, Math.round((state.gdp / 35) * 100));
+      pctEl.textContent = progress + '%';
+      barEl.style.width = progress + '%';
+
+      state.projects.forEach((p, idx) => {
+        const btn = document.getElementById(`buy-${idx}`);
+        if (btn) btn.disabled = state.funds < p.cost;
+      });
+    }
+
+    function innovate() {
+      state.funds += state.clickPower;
+      state.gdp += 0.005;
+      updateUI();
+    }
+
+    document.getElementById('innovateBtn').onclick = innovate;
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') { e.preventDefault(); innovate(); }
+    });
+
+    document.getElementById('shareBtn').onclick = () => {
+      const msg = `🇮🇳 I took India's GDP to $${state.gdp.toFixed(2)} Trillion (${getRank(state.gdp)}) in BHARAT 2047! Can you beat my score?`;
+      navigator.clipboard.writeText(msg);
+      alert('Score copied! Paste and share with your friends.');
+    };
+
+    setInterval(() => {
+      if (state.autoIncome > 0) {
+        state.funds += state.autoIncome / 10;
+        state.gdp += (state.autoIncome / 100000);
+        updateUI();
+      }
+    }, 100);
+
+    renderProjects();
+    updateUI();
+  </script>
+</body>
+</html>
