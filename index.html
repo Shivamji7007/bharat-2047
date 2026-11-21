@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>BHARAT 2047 // 3D DIGITAL TWIN EXPLORER</title>
+  <title>BHARAT 2047 // 3D DIGITAL TWIN & LIVE WIKI INTEL</title>
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
     body { background: #030711; color: #eef4ff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
     /* Top Command HUD */
@@ -52,34 +52,42 @@
 
     /* 3D Viewport */
     .workspace { position: relative; flex: 1; display: flex; overflow: hidden; }
-    #map { flex: 1; height: 100%; background: #030711; }
+    #map { flex: 1; height: 100%; background: #030711; cursor: crosshair; }
 
     /* 3D Marker Pins */
     .pin-3d {
-      padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800;
-      color: #040812; border: 2px solid #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.7);
+      padding: 5px 9px; border-radius: 7px; font-size: 0.73rem; font-weight: 800;
+      color: #040812; border: 2px solid #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.85);
       cursor: pointer; white-space: nowrap; transition: transform 0.15s;
     }
-    .pin-3d:hover { transform: scale(1.15); z-index: 99; }
+    .pin-3d:hover { transform: scale(1.16); z-index: 999; }
 
     /* Right Inspector Panel */
     .drawer {
-      position: absolute; top: 12px; right: 12px; width: 340px; max-width: 92vw;
+      position: absolute; top: 12px; right: 12px; width: 365px; max-width: 92vw;
       max-height: calc(100% - 24px); overflow-y: auto;
-      background: rgba(7, 14, 29, 0.94); border: 1.5px solid #00e5ff; border-radius: 14px;
-      padding: 15px; box-shadow: 0 0 28px rgba(0, 229, 255, 0.25); z-index: 50;
+      background: rgba(7, 14, 29, 0.96); border: 1.5px solid #00e5ff; border-radius: 14px;
+      padding: 16px; box-shadow: 0 0 32px rgba(0, 229, 255, 0.28); z-index: 50;
+      user-select: text;
     }
     .badge {
       display: inline-block; padding: 3px 8px; border-radius: 5px;
       font-size: 0.68rem; font-weight: 800; text-transform: uppercase; margin-bottom: 6px;
     }
-    .drawer h2 { font-size: 1.02rem; color: #fff; line-height: 1.3; }
+    .drawer h2 { font-size: 1.06rem; color: #fff; line-height: 1.3; }
     .drawer .loc { font-size: 0.76rem; color: #ff9933; font-weight: 700; margin: 3px 0 8px; }
-    .drawer p { font-size: 0.79rem; color: #cbd5e1; line-height: 1.45; margin-bottom: 10px; }
+    .drawer p { font-size: 0.81rem; color: #dbeafe; line-height: 1.5; margin-bottom: 10px; }
+
+    .wiki-box {
+      background: rgba(56, 239, 125, 0.08); border-left: 3px solid #38ef7d;
+      padding: 9px 11px; border-radius: 6px; font-size: 0.79rem; color: #e2e8f0;
+      line-height: 1.48; margin-bottom: 10px;
+    }
+    .wiki-box b { color: #38ef7d; display: block; margin-bottom: 3px; font-size: 0.74rem; text-transform: uppercase; }
 
     .data-box {
       background: rgba(0, 229, 255, 0.07); border-left: 3px solid #00e5ff;
-      padding: 8px 10px; border-radius: 6px; font-size: 0.76rem; color: #e2e8f0; margin-bottom: 10px;
+      padding: 8px 10px; border-radius: 6px; font-size: 0.75rem; color: #cbd5e1; margin-bottom: 10px;
     }
     .data-box b { color: #00e5ff; display: block; margin-bottom: 2px; }
 
@@ -100,23 +108,22 @@
     }
     .btn-secondary:hover { background: #00e5ff; color: #040812; }
 
-    /* Controls Guide */
     .controls-hud {
       position: absolute; bottom: 12px; left: 12px; z-index: 40;
-      background: rgba(6, 13, 28, 0.9); border: 1px solid #264885;
-      padding: 7px 12px; border-radius: 8px; font-size: 0.72rem; color: #94a3b8;
+      background: rgba(6, 13, 28, 0.92); border: 1px solid #264885;
+      padding: 7px 12px; border-radius: 8px; font-size: 0.73rem; color: #cbd5e1;
     }
     .controls-hud b { color: #00e5ff; }
   </style>
 </head>
 <body>
   <div class="hud">
-    <div class="brand">🇮🇳 BHARAT 2047 // 3D DIGITAL TWIN</div>
+    <div class="brand">🇮🇳 BHARAT 2047 // 3D DIGITAL TWIN + LIVE WIKI INTEL</div>
     <div class="metrics">
       <div class="metric">R&D Budget<b id="funds">₹500 Cr</b></div>
       <div class="metric gdp">Bharat GDP<b id="gdp">$4.30 T</b></div>
       <div class="metric rank">Global Rank<b id="rank">#4 (Target: #1 > $29.2T)</b></div>
-      <div class="metric">Real POIs Scanned<b id="poiCount">10 Hubs</b></div>
+      <div class="metric">Real Places Found<b id="poiCount">Scanning...</b></div>
     </div>
   </div>
 
@@ -125,68 +132,73 @@
   <div class="workspace">
     <div id="map"></div>
     <div class="controls-hud">
-      <b>3D Flight Controls:</b> WASD / Arrows = Fly • Q / E = Rotate 360° • Right-Drag = Tilt 3D Buildings • Click <b>Scan Live Area</b> for real Hospitals, Schools & Factories!
+      <b>Click ANY 3D Building or Pin</b> to load Live Wikipedia & Satellite Telemetry • <b>WASD</b> = Fly • <b>Q/E</b> = Rotate
     </div>
     <div class="drawer" id="drawer"></div>
   </div>
 
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
   <script>
-    // Premier Real Indian Hubs (3D Fly-To Targets)
     const hubs = [
       {
         id: 'delhi', city: 'New Delhi (IITD / AIIMS / DRDO)',
-        name: 'IIT Delhi, AIIMS & DRDO National Sector',
-        type: 'Premier Institute & Hospital Hub',
-        lat: 28.5562, lng: 77.1980, zoom: 15.2, pitch: 62, bearing: -20,
+        name: 'Indian Institute of Technology Delhi',
+        wikiTitle: 'IIT Delhi',
+        type: 'Premier Engineering & Research Institute',
+        lat: 28.5450, lng: 77.1926, zoom: 15.5, pitch: 62, bearing: -20,
         color: '#38ef7d', level: 1, cost: 250, income: 75, gdp: 0.50,
         desc: '3D Digital Twin of South Delhi’s premier R&D corridor housing IIT Delhi, AIIMS Medical Research, and DRDO defense labs.',
-        realData: 'Coordinates: 28.55°N, 77.19°E | Focus: Sovereign AI, Biomedical Robotics, Radar & Missile Avionics.'
+        realData: 'Coordinates: 28.5450°N, 77.1926°E | Focus: Sovereign AI, Quantum Tech, Robotics & Defense R&D.'
       },
       {
         id: 'bengaluru', city: 'Bengaluru (IISc / ISRO HQ)',
-        name: 'IISc Bengaluru & Aerospace Park',
+        name: 'Indian Institute of Science',
+        wikiTitle: 'Indian Institute of Science',
         type: 'Deep-Tech & Space Research',
-        lat: 13.0219, lng: 77.5671, zoom: 15.4, pitch: 64, bearing: 25,
+        lat: 13.0219, lng: 77.5671, zoom: 15.5, pitch: 64, bearing: 25,
         color: '#a855f7', level: 1, cost: 280, income: 85, gdp: 0.60,
-        desc: 'India’s Silicon Valley & Aerospace capital where IISc, ISRO Antariksh Bhavan, and HAL build quantum computers and fighter jets.',
-        realData: 'Coordinates: 13.02°N, 77.56°E | Focus: Param Pravega Supercomputer, Quantum Labs & Tejas Mk2.'
+        desc: 'India’s #1 research university pioneering quantum computing, hypersonic wind tunnels, and indigenous fighter jet avionics.',
+        realData: 'Coordinates: 13.0219°N, 77.5671°E | Focus: Param Pravega Supercomputer & Aerospace Engineering.'
       },
       {
-        id: 'mumbai', city: 'Mumbai (BARC / IIT Bombay)',
-        name: 'IIT Bombay & Powai Innovation District',
+        id: 'mumbai', city: 'Mumbai (IIT Bombay / BARC)',
+        name: 'IIT Bombay',
+        wikiTitle: 'IIT Bombay',
         type: 'Nuclear, FinTech & Engineering',
-        lat: 19.1334, lng: 72.9133, zoom: 15.3, pitch: 65, bearing: -35,
+        lat: 19.1334, lng: 72.9133, zoom: 15.5, pitch: 65, bearing: -35,
         color: '#3b82f6', level: 0, cost: 400, income: 130, gdp: 0.90,
-        desc: 'High-density 3D urban twin of Powai & Trombay featuring IIT Bombay, BARC Nuclear Reactors, and India’s financial capital.',
-        realData: 'Coordinates: 19.13°N, 72.91°E | Focus: Thorium Reactors, FinTech Infrastructure & Semiconductor Design.'
+        desc: 'High-density 3D urban twin of Powai & Trombay featuring IIT Bombay and BARC Nuclear Research.',
+        realData: 'Coordinates: 19.1334°N, 72.9133°E | Focus: Semiconductors, FinTech & Clean Nuclear Energy.'
       },
       {
         id: 'chennai', city: 'Chennai (IIT Madras / EV Hub)',
-        name: 'IIT Madras Research Park & Industrial Belt',
-        type: 'Semiconductors & Smart Factories',
-        lat: 12.9915, lng: 80.2337, zoom: 15.3, pitch: 60, bearing: 15,
+        name: 'IIT Madras',
+        wikiTitle: 'IIT Madras',
+        type: 'Semiconductors, Hyperloop & EV',
+        lat: 12.9915, lng: 80.2337, zoom: 15.5, pitch: 60, bearing: 15,
         color: '#00e5ff', level: 0, cost: 350, income: 115, gdp: 0.78,
-        desc: 'India’s top deep-tech hardware and EV manufacturing belt, home to SHAKTI indigenous microprocessors and 3D-printed rockets.',
-        realData: 'Coordinates: 12.99°N, 80.23°E | Focus: RISC-V Chips, Hyperloop & Automotive Giga-Factories.'
+        desc: 'India’s top deep-tech hardware and EV manufacturing belt, home to SHAKTI indigenous microprocessors.',
+        realData: 'Coordinates: 12.9915°N, 80.2337°E | Focus: RISC-V Chips, Hyperloop & Space Startups.'
       },
       {
-        id: 'gujarat', city: 'Ahmedabad / GIFT City & Dholera',
-        name: 'GIFT City FinTech & Semiconductor Corridor',
-        type: 'Smart City & Chip Fab Zone',
-        lat: 23.1594, lng: 72.6836, zoom: 15.2, pitch: 62, bearing: 10,
+        id: 'gujarat', city: 'Gujarat (GIFT City / Dholera)',
+        name: 'Gujarat International Finance Tec-City',
+        wikiTitle: 'Gujarat International Finance Tec-City',
+        type: 'Smart City & FinTech Hub',
+        lat: 23.1594, lng: 72.6836, zoom: 15.4, pitch: 62, bearing: 10,
         color: '#ff9933', level: 0, cost: 550, income: 180, gdp: 1.25,
-        desc: 'Next-gen futuristic 3D skyline of GIFT City & Dholera SIR—India’s hub for 3nm semiconductor wafer fabs and global finance.',
-        realData: 'Coordinates: 23.15°N, 72.68°E | Focus: Commercial Chip Fabs, Green Hydrogen & Global Bullion Exchange.'
+        desc: 'Next-gen futuristic 3D skyline of GIFT City & Dholera SIR—India’s hub for 3nm semiconductor fabs and global finance.',
+        realData: 'Coordinates: 23.1594°N, 72.6836°E | Focus: Global FinTech, Chip Fabs & Green Hydrogen.'
       },
       {
         id: 'sriharikota', city: 'Sriharikota (ISRO Spaceport)',
-        name: 'Satish Dhawan Space Centre (SDSC SHAR)',
+        name: 'Satish Dhawan Space Centre',
+        wikiTitle: 'Satish Dhawan Space Centre',
         type: 'Orbital Launch Complex',
-        lat: 13.7200, lng: 80.2266, zoom: 14.5, pitch: 58, bearing: 0,
+        lat: 13.7200, lng: 80.2266, zoom: 14.6, pitch: 58, bearing: 0,
         color: '#f43f5e', level: 0, cost: 750, income: 260, gdp: 1.80,
-        desc: 'India’s primary rocket launchport on the Bay of Bengal coast launching LVM3, Gaganyaan, and commercial satellite constellations.',
-        realData: 'Coordinates: 13.72°N, 80.22°E | Focus: Reusable Launch Vehicles & Bharatiya Antariksh Station.'
+        desc: 'India’s primary rocket launchport on the Bay of Bengal coast launching LVM3, Gaganyaan, and Chandrayaan.',
+        realData: 'Coordinates: 13.7200°N, 80.2266°E | Focus: Reusable Launch Vehicles & Bharatiya Antariksh Station.'
       }
     ];
 
@@ -194,11 +206,11 @@
       funds: 500,
       gdp: 4.30,
       selected: hubs[0],
-      scannedCount: hubs.length,
+      wikiCache: {},
+      wikiText: 'Loading real-world Wikipedia intelligence...',
       liveMarkers: []
     };
 
-    // Initialize 3D MapLibre GL Engine (Free OpenFreeMap Dark 3D Vector Tiles)
     const map = new maplibregl.Map({
       container: 'map',
       style: 'https://tiles.openfreemap.org/styles/dark',
@@ -211,7 +223,44 @@
 
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'bottom-right');
 
-    // Add 3D Extruded Buildings Layer once style loads
+    // Fetch Real-World Information from Wikipedia API
+    async function fetchRealWikiInfo(queryName, fallbackDesc) {
+      if (state.wikiCache[queryName]) {
+        state.wikiText = state.wikiCache[queryName];
+        renderDrawer();
+        return;
+      }
+
+      state.wikiText = `📡 Fetching live real-world records for "${queryName}"...`;
+      renderDrawer();
+
+      try {
+        // Search best matching Wikipedia page first
+        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(queryName + ' India')}&format=json&origin=*`;
+        const sRes = await fetch(searchUrl);
+        const sData = await sRes.json();
+
+        if (sData.query && sData.query.search && sData.query.search.length > 0) {
+          const pageTitle = sData.query.search[0].title;
+          const sumUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
+          const sumRes = await fetch(sumUrl);
+          const sumData = await sumRes.json();
+
+          if (sumData.extract) {
+            state.wikiCache[queryName] = sumData.extract;
+            state.wikiText = sumData.extract;
+            renderDrawer();
+            return;
+          }
+        }
+      } catch (e) {
+        console.log('Wiki fetch fallback');
+      }
+
+      state.wikiText = fallbackDesc || 'Verified Indian infrastructure & institutional facility mapped via live satellite telemetry.';
+      renderDrawer();
+    }
+
     map.on('load', () => {
       const layers = map.getStyle().layers;
       let labelLayerId;
@@ -222,6 +271,7 @@
         }
       }
 
+      // Add Interactive 3D Buildings
       map.addLayer({
         id: '3d-buildings',
         source: 'openmaptiles',
@@ -230,59 +280,107 @@
         minzoom: 13,
         paint: {
           'fill-extrusion-color': [
-            'interpolate', ['linear'], ['get', 'render_height'],
-            0, '#0f2347',
-            30, '#1d4ed8',
-            80, '#00e5ff',
-            150, '#ff9933'
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            '#38ef7d',
+            [
+              'interpolate', ['linear'], ['get', 'render_height'],
+              0, '#0f2347',
+              30, '#1d4ed8',
+              80, '#00e5ff',
+              150, '#ff9933'
+            ]
           ],
           'fill-extrusion-height': ['get', 'render_height'],
           'fill-extrusion-base': ['get', 'render_min_height'],
-          'fill-extrusion-opacity': 0.88
+          'fill-extrusion-opacity': 0.9
         }
       }, labelLayerId);
 
-      // Render Hero Hub 3D Pins
+      // CLICK ON ANY 3D BUILDING IN INDIA!
+      map.on('click', '3d-buildings', async (e) => {
+        if (!e.features || !e.features.length) return;
+        const feat = e.features[0];
+        const props = feat.properties || {};
+        const height = props.render_height || props.height || 15;
+        const lat = e.lngLat.lat;
+        const lng = e.lngLat.lng;
+
+        // Reverse-lookup nearest named place/building from OpenStreetMap at exact clicked coordinates
+        state.selected = {
+          id: 'bldg_' + Date.now(),
+          city: `${lat.toFixed(5)}°N, ${lng.toFixed(5)}°E`,
+          name: props.name || 'Inspecting 3D Structure...',
+          type: `3D Building Structure (Height: ${Math.round(height)}m)`,
+          color: '#38ef7d',
+          level: 1, cost: 180, income: 55, gdp: 0.30,
+          desc: 'Analyzing satellite & OpenStreetMap records for this exact 3D structure...',
+          realData: `Elevation/Height: ${Math.round(height)} meters | Coordinates: ${lat.toFixed(5)}°N, ${lng.toFixed(5)}°E`
+        };
+        state.wikiText = '📡 Querying live satellite & Wikipedia database for this building...';
+        renderDrawer();
+
+        try {
+          const revUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+          const rRes = await fetch(revUrl);
+          const rData = await rRes.json();
+
+          const realName = rData.name || (rData.address && (rData.address.university || rData.address.hospital || rData.address.school || rData.address.industrial || rData.address.building || rData.address.road)) || 'Indian Urban Structure';
+          const category = rData.type ? rData.type.toUpperCase() : 'INFRASTRUCTURE';
+
+          state.selected.name = realName;
+          state.selected.type = `3D ${category} • Height: ${Math.round(height)}m`;
+          state.selected.desc = rData.display_name || 'Verified real-world structure in India.';
+          state.selected.realData = `Full Address: ${rData.display_name || 'India'} | Height: ${Math.round(height)}m`;
+
+          fetchRealWikiInfo(realName, rData.display_name);
+        } catch (err) {
+          state.selected.name = props.name || '3D Urban Structure';
+          state.wikiText = 'Real-world building geometry rendered from OpenStreetMap 3D vector data.';
+          renderDrawer();
+        }
+      });
+
+      map.on('mouseenter', '3d-buildings', () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', '3d-buildings', () => map.getCanvas().style.cursor = 'crosshair');
+
+      // Render Hero Hub Pins
       hubs.forEach(h => {
         const el = document.createElement('div');
         el.className = 'pin-3d';
         el.style.background = h.color;
         el.textContent = `🏛️ ${h.city.split(' ')[0]}`;
-        el.onclick = () => selectHub(h);
-
-        new maplibregl.Marker({ element: el })
-          .setLngLat([h.lng, h.lat])
-          .addTo(map);
+        el.onclick = (ev) => { ev.stopPropagation(); selectHub(h); };
+        new maplibregl.Marker({ element: el }).setLngLat([h.lng, h.lat]).addTo(map);
       });
+
+      // Auto-scan Delhi on first load
+      scanLiveArea();
+      fetchRealWikiInfo(hubs[0].wikiTitle, hubs[0].desc);
     });
 
-    // Live OpenStreetMap Overpass API Scanner (Fetches REAL Hospitals, Schools, Universities & Factories in current 3D view!)
+    // Live OpenStreetMap Scanner for Real Hospitals, Schools, Universities & Factories
     async function scanLiveArea() {
       const btn = document.getElementById('scanBtn');
-      btn.textContent = '📡 Scanning Real Buildings via Satellite...';
-      btn.disabled = true;
+      if (btn) { btn.textContent = '📡 Scanning Real Institutes, Hospitals & Factories...'; btn.disabled = true; }
 
       const c = map.getCenter();
-      const radius = 3500; // 3.5 km radius around current camera
+      const radius = 3500;
       const query = `
         [out:json][timeout:12];
         (
           node["amenity"~"hospital|university|college|school"](around:${radius},${c.lat},${c.lng});
-          way["amenity"~"hospital|university|college"](around:${radius},${c.lat},${c.lng});
+          way["amenity"~"hospital|university|college|school"](around:${radius},${c.lat},${c.lng});
           way["man_made"="works"](around:${radius},${c.lat},${c.lng});
           way["landuse"="industrial"](around:${radius},${c.lat},${c.lng});
         );
-        out center 25;
+        out center 30;
       `;
 
       try {
-        const res = await fetch('https://overpass-api.de/api/interpreter', {
-          method: 'POST',
-          body: query
-        });
+        const res = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: query });
         const data = await res.json();
 
-        // Clear old scanned pins
         state.liveMarkers.forEach(m => m.remove());
         state.liveMarkers = [];
 
@@ -294,29 +392,40 @@
           const name = tags.name || tags['name:en'];
           if (!lat || !lng || !name) return;
 
-          let category = 'Institution';
+          let category = 'Real School / Academy';
           let badgeColor = '#38ef7d';
           let icon = '🏫';
-          if (tags.amenity === 'hospital') { category = 'Real Hospital'; badgeColor = '#f43f5e'; icon = '🏥'; }
+          if (tags.amenity === 'hospital') { category = 'Real Hospital / Medical Hub'; badgeColor = '#f43f5e'; icon = '🏥'; }
           else if (tags.amenity === 'university' || tags.amenity === 'college') { category = 'Real University / Institute'; badgeColor = '#00e5ff'; icon = '🎓'; }
-          else if (tags.man_made === 'works' || tags.landuse === 'industrial') { category = 'Real Factory / Industrial Hub'; badgeColor = '#ff9933'; icon = '🏭'; }
+          else if (tags.man_made === 'works' || tags.landuse === 'industrial') { category = 'Real Factory / Industrial Plant'; badgeColor = '#ff9933'; icon = '🏭'; }
 
           const pin = document.createElement('div');
           pin.className = 'pin-3d';
           pin.style.background = badgeColor;
           pin.textContent = `${icon} ${name.slice(0, 22)}`;
-          pin.onclick = () => {
+
+          pin.onclick = (ev) => {
+            ev.stopPropagation();
+            const fullDetails = [
+              tags.operator ? `Operator: ${tags.operator}` : '',
+              tags['addr:full'] || tags['addr:street'] || tags['addr:city'] ? `Location: ${tags['addr:full'] || tags['addr:street'] || tags['addr:city']}` : '',
+              tags.website ? `Website: ${tags.website}` : '',
+              tags.beds ? `Hospital Beds: ${tags.beds}` : ''
+            ].filter(Boolean).join(' | ');
+
             state.selected = {
               id: 'live_' + el.id,
               city: `${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`,
               name: name,
-              type: `${category} (Live OpenStreetMap Data)`,
+              type: category,
               color: badgeColor,
               level: 1, cost: 150, income: 45, gdp: 0.25,
-              desc: `Verified real-world ${category.toLowerCase()} mapped in India's 3D Digital Twin. Operator: ${tags.operator || 'Public / Private Sector'}.`,
-              realData: `Address/Sector: ${tags['addr:street'] || tags['addr:city'] || 'Verified OSM Sector'} | Type: ${tags.amenity || tags.landuse || 'Industrial'}`
+              desc: `Real-world ${category.toLowerCase()} mapped in India’s 3D Digital Twin.`,
+              realData: fullDetails || `Verified OpenStreetMap Facility (${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E)`
             };
-            renderDrawer();
+
+            map.flyTo({ center: [lng, lat], zoom: 16, pitch: 65, duration: 900 });
+            fetchRealWikiInfo(name, `${name} is a verified ${category.toLowerCase()} located at ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E.`);
           };
 
           const marker = new maplibregl.Marker({ element: pin }).setLngLat([lng, lat]).addTo(map);
@@ -324,40 +433,30 @@
           added++;
         });
 
-        state.scannedCount = hubs.length + added;
-        state.funds += added * 15;
-        document.getElementById('poiCount').textContent = `${state.scannedCount} Real Places`;
-        btn.textContent = `✅ Found ${added} Real Places (+₹${added * 15} Cr)!`;
+        document.getElementById('poiCount').textContent = `${hubs.length + added} Real Places`;
+        if (btn) btn.textContent = `✅ ${added} Real Places Mapped!`;
       } catch (err) {
-        btn.textContent = '⚠️ Retry Scan (Zoom into a City)';
+        if (btn) btn.textContent = '📡 Scan Real Places Here';
       }
+
       setTimeout(() => {
-        btn.disabled = false;
-        btn.textContent = '📡 Scan Real Hospitals, Schools & Factories Here';
-      }, 3000);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '📡 Scan Real Hospitals, Schools & Factories Here';
+        }
+      }, 2500);
     }
 
     function selectHub(h) {
       state.selected = h;
-      map.flyTo({
-        center: [h.lng, h.lat],
-        zoom: h.zoom,
-        pitch: h.pitch,
-        bearing: h.bearing,
-        duration: 1600
-      });
-      renderDrawer();
+      map.flyTo({ center: [h.lng, h.lat], zoom: h.zoom, pitch: h.pitch, bearing: h.bearing, duration: 1400 });
+      fetchRealWikiInfo(h.wikiTitle, h.desc);
+      setTimeout(scanLiveArea, 1500); // Auto-scan real hospitals/factories around this hub!
     }
 
     function renderCityBar() {
       const bar = document.getElementById('cityBar');
       bar.innerHTML = `<span class="nav-label">🚁 3D SECTORS:</span>`;
-
-      const indiaBtn = document.createElement('button');
-      indiaBtn.className = 'pill';
-      indiaBtn.textContent = '🇮🇳 Orbit India';
-      indiaBtn.onclick = () => map.flyTo({ center: [79.5, 22.0], zoom: 4.5, pitch: 25, bearing: 0, duration: 1400 });
-      bar.appendChild(indiaBtn);
 
       hubs.forEach(h => {
         const b = document.createElement('button');
@@ -394,9 +493,12 @@
         <div class="badge" style="background:${h.color}28; color:${h.color};">${h.type}</div>
         <h2>${h.name}</h2>
         <div class="loc">📍 ${h.city} • TIER ${h.level}</div>
-        <p>${h.desc}</p>
+        <div class="wiki-box">
+          <b>📖 REAL-WORLD WIKIPEDIA & FACTUAL RECORD:</b>
+          ${state.wikiText}
+        </div>
         <div class="data-box">
-          <b>📊 REAL-WORLD TELEMETRY & DATA:</b>
+          <b>🛰️ SATELLITE & INFRASTRUCTURE TELEMETRY:</b>
           ${h.realData}
         </div>
         <div class="stats-row">
@@ -404,10 +506,10 @@
           <div class="mini-stat"><span>GDP Impact</span><b>+$${h.gdp} Trillion</b></div>
         </div>
         <button class="btn-primary" onclick="upgradeCurrent()" ${state.funds < h.cost ? 'disabled' : ''}>
-          🚀 INVEST & UPGRADE SECTOR (₹${h.cost} Cr)
+          🚀 INVEST & EXPAND SECTOR (₹${h.cost} Cr)
         </button>
         <button class="btn-secondary" onclick="state.funds += 40; updateHUD();">
-          ⚡ COLLECT R&D GRANT (+₹40 Cr)
+          ⚡ RELEASE R&D GRANT (+₹40 Cr)
         </button>
       `;
     }
@@ -423,7 +525,6 @@
       document.getElementById('rank').textContent = rank;
     }
 
-    // Keyboard 3D Flight Controls (WASD + Q/E Rotate)
     window.addEventListener('keydown', e => {
       const step = 120;
       if (e.code === 'KeyW' || e.code === 'ArrowUp') map.panBy([0, -step], { duration: 150 });
@@ -440,7 +541,6 @@
       state.funds += total / 10;
       state.gdp += total / 450000;
       updateHUD();
-      renderDrawer();
     }, 1000);
 
     renderCityBar();
