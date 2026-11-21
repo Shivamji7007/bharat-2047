@@ -3,91 +3,85 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>BHARAT 2047: Global Superpower Strategy</title>
+  <title>BHARAT 2047: State-by-State Superpower Strategy</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none; }
     body { background: #040812; color: #eef4ff; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
 
-    /* Top HUD */
     .hud {
       display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
       padding: 8px 16px; background: rgba(10, 18, 36, 0.96); border-bottom: 1px solid #1e3a6e;
       z-index: 10; gap: 8px;
     }
     .brand { font-weight: 800; font-size: 1.05rem; background: linear-gradient(90deg, #ff9933, #fff, #38ef7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .metrics { display: flex; gap: 14px; flex-wrap: wrap; }
-    .metric { font-size: 0.78rem; color: #8ca0c4; }
-    .metric b { display: block; font-size: 0.98rem; color: #00e5ff; }
+    .metrics { display: flex; gap: 16px; flex-wrap: wrap; }
+    .metric { font-size: 0.75rem; color: #8ca0c4; }
+    .metric b { display: block; font-size: 0.96rem; color: #00e5ff; }
     .metric.gdp b { color: #38ef7d; }
     .metric.rank b { color: #ffd700; }
 
-    /* Country Switcher Bar */
     .world-bar {
-      display: flex; justify-content: center; gap: 8px; padding: 8px;
+      display: flex; justify-content: center; gap: 8px; padding: 7px;
       background: #071022; border-bottom: 1px solid #172d56; z-index: 10; flex-wrap: wrap;
     }
     .country-btn {
-      padding: 6px 14px; border-radius: 99px; border: 1px solid #264885;
-      background: #0d1b38; color: #cbd5e1; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s;
+      padding: 5px 14px; border-radius: 99px; border: 1px solid #264885;
+      background: #0d1b38; color: #cbd5e1; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: 0.2s;
     }
     .country-btn.active { background: #ff9933; color: #050b16; border-color: #ff9933; box-shadow: 0 0 12px rgba(255,153,51,0.5); }
     .country-btn.foreign.active { background: #00e5ff; color: #050b16; border-color: #00e5ff; box-shadow: 0 0 12px rgba(0,229,255,0.5); }
 
-    /* Main Viewport */
     .stage { position: relative; flex: 1; width: 100%; overflow: hidden; }
     canvas { display: block; width: 100%; height: 100%; }
 
-    /* Intel Panel for Foreign Countries */
     .intel-panel {
-      position: absolute; top: 56px; right: 16px; width: 310px; max-width: 90vw;
+      position: absolute; top: 52px; right: 14px; width: 300px; max-width: 90vw;
       background: rgba(9, 17, 34, 0.94); border: 1px solid #00e5ff; border-radius: 14px;
-      padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 12; display: none;
+      padding: 13px; box-shadow: 0 10px 30px rgba(0,0,0,0.85); z-index: 12; display: none;
     }
-    .intel-panel h3 { font-size: 1rem; color: #00e5ff; margin-bottom: 6px; }
-    .intel-section { margin-top: 8px; font-size: 0.8rem; line-height: 1.4; }
+    .intel-panel h3 { font-size: 0.95rem; color: #00e5ff; margin-bottom: 6px; }
+    .intel-section { margin-top: 7px; font-size: 0.78rem; line-height: 1.4; }
     .intel-section b { color: #ff9933; display: block; margin-bottom: 2px; }
     .intel-lesson {
-      margin-top: 10px; padding: 8px; background: rgba(56, 239, 125, 0.1);
-      border-left: 3px solid #38ef7d; font-size: 0.78rem; color: #d1fae5;
+      margin-top: 9px; padding: 7px; background: rgba(56, 239, 125, 0.1);
+      border-left: 3px solid #38ef7d; font-size: 0.76rem; color: #d1fae5;
     }
 
-    /* Prompt & Alert */
     .prompt {
-      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
       background: rgba(255, 153, 51, 0.16); border: 1px solid #ff9933; color: #ffcf9e;
-      padding: 6px 14px; border-radius: 99px; font-size: 0.8rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 99px; font-size: 0.79rem; font-weight: 600;
       pointer-events: none; text-align: center; white-space: nowrap; max-width: 94vw; overflow: hidden; text-overflow: ellipsis;
     }
     .alert-banner {
-      position: absolute; top: 48px; left: 50%; transform: translateX(-50%);
-      background: rgba(239, 68, 68, 0.92); color: #fff; padding: 6px 16px;
-      border-radius: 10px; font-weight: 700; font-size: 0.82rem; display: none;
+      position: absolute; top: 44px; left: 50%; transform: translateX(-50%);
+      background: rgba(239, 68, 68, 0.92); color: #fff; padding: 5px 15px;
+      border-radius: 10px; font-weight: 700; font-size: 0.8rem; display: none;
     }
 
-    /* Bottom Dock */
     .dock {
-      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+      position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
       display: flex; gap: 8px; background: rgba(8, 15, 30, 0.92);
-      padding: 8px 12px; border-radius: 14px; border: 1px solid #264885;
-      z-index: 10; max-width: 96vw; overflow-x: auto;
+      padding: 8px 10px; border-radius: 14px; border: 1px solid #264885;
+      z-index: 10; max-width: 97vw; overflow-x: auto;
     }
     .hub-card {
       background: #0e1b36; border: 1px solid #1f3b70; border-radius: 10px;
-      padding: 7px 11px; min-width: 145px; cursor: pointer; transition: 0.15s;
+      padding: 6px 10px; min-width: 142px; cursor: pointer; transition: 0.15s;
     }
     .hub-card:hover { border-color: #ff9933; }
-    .hub-card h4 { font-size: 0.82rem; color: #fff; }
-    .hub-card p { font-size: 0.7rem; color: #8ca0c4; margin: 2px 0; }
-    .hub-card span { font-size: 0.75rem; font-weight: 700; color: #38ef7d; }
+    .hub-card h4 { font-size: 0.78rem; color: #fff; }
+    .hub-card p { font-size: 0.68rem; color: #8ca0c4; margin: 2px 0; }
+    .hub-card span { font-size: 0.72rem; font-weight: 700; color: #38ef7d; }
   </style>
 </head>
 <body>
   <div class="hud">
-    <div class="brand">🇮🇳 BHARAT 2047 // GLOBAL STRATEGY</div>
+    <div class="brand">🇮🇳 BHARAT 2047 // STATES & GEOPOLITICS</div>
     <div class="metrics">
-      <div class="metric">BHARAT FUNDS<b id="funds">₹300 Cr</b></div>
+      <div class="metric">BHARAT FUNDS<b id="funds">₹350 Cr</b></div>
       <div class="metric gdp">BHARAT GDP<b id="gdp">$4.30 T</b></div>
-      <div class="metric rank">GLOBAL RANK<b id="rank">#4 (Target: #1 > $29T)</b></div>
+      <div class="metric rank">GLOBAL RANK<b id="rank">#4 (Target: #1 > $29.2T)</b></div>
       <div class="metric">INTEL POINTS<b id="intel">0 🧠</b></div>
     </div>
   </div>
@@ -96,8 +90,8 @@
 
   <div class="stage">
     <canvas id="gameCanvas"></canvas>
-    <div class="prompt" id="promptText">Fly Rover (WASD / Arrows / Click) • Press SPACE to Build or Scan Strategy</div>
-    <div class="alert-banner" id="alertBanner">⚠️ CYBER THREAT ON BHARAT! Switch to India & Defend Flashing Node!</div>
+    <div class="prompt" id="promptText">Fly Rover across Indian States (WASD / Arrows / Click) • Press SPACE to Build</div>
+    <div class="alert-banner" id="alertBanner">⚠️ CYBER THREAT DETECTED! Fly Rover to Flashing State to Defend!</div>
     <div class="intel-panel" id="intelPanel"></div>
     <div class="dock" id="dock"></div>
   </div>
@@ -109,9 +103,8 @@
     function resize() { W = canvas.width = canvas.parentElement.clientWidth; H = canvas.height = canvas.parentElement.clientHeight; }
     window.addEventListener('resize', resize); resize();
 
-    // Audio Synthesizer
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playTone(freq, type, duration, vol = 0.07) {
+    function playTone(freq, type, duration, vol = 0.06) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
       osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
@@ -121,72 +114,104 @@
       osc.start(); osc.stop(audioCtx.currentTime + duration);
     }
 
-    // World Data (Real Economic Breakdown + Game Hubs)
     const worlds = {
       india: {
-        name: '🇮🇳 BHARAT (Home)', isHome: true, color: '#ff9933', gdpTarget: '$4.30 T (Growing)',
-        outline: [[0.45,0.08],[0.51,0.13],[0.54,0.22],[0.62,0.29],[0.76,0.30],[0.83,0.26],[0.85,0.34],[0.77,0.41],[0.70,0.39],[0.67,0.47],[0.60,0.56],[0.55,0.69],[0.49,0.87],[0.45,0.86],[0.39,0.68],[0.36,0.53],[0.27,0.50],[0.29,0.43],[0.36,0.38],[0.39,0.26],[0.41,0.14]],
+        name: '🇮🇳 BHARAT (States)', isHome: true, color: '#ff9933',
+        outline: [[0.45,0.06],[0.52,0.12],[0.54,0.21],[0.63,0.28],[0.77,0.29],[0.84,0.25],[0.86,0.34],[0.78,0.42],[0.71,0.39],[0.67,0.48],[0.59,0.57],[0.54,0.71],[0.48,0.88],[0.44,0.87],[0.38,0.69],[0.35,0.53],[0.26,0.50],[0.28,0.42],[0.36,0.37],[0.39,0.24],[0.41,0.13]],
+        states: [
+          { name: 'LADAKH & J&K', poly: [[0.41,0.13],[0.45,0.06],[0.52,0.12],[0.50,0.21],[0.42,0.21]], cx: 0.46, cy: 0.15, fill: 'rgba(56, 239, 125, 0.10)' },
+          { name: 'DELHI & HARYANA', poly: [[0.42,0.21],[0.49,0.21],[0.49,0.29],[0.41,0.29]], cx: 0.45, cy: 0.25, fill: 'rgba(0, 229, 255, 0.12)' },
+          { name: 'UTTAR PRADESH', poly: [[0.49,0.23],[0.61,0.28],[0.60,0.38],[0.49,0.36]], cx: 0.55, cy: 0.31, fill: 'rgba(255, 153, 51, 0.11)' },
+          { name: 'RAJASTHAN', poly: [[0.36,0.27],[0.45,0.29],[0.44,0.41],[0.32,0.39]], cx: 0.38, cy: 0.34, fill: 'rgba(250, 204, 21, 0.08)' },
+          { name: 'GUJARAT', poly: [[0.28,0.42],[0.38,0.41],[0.37,0.51],[0.26,0.50]], cx: 0.32, cy: 0.46, fill: 'rgba(255, 153, 51, 0.14)' },
+          { name: 'MADHYA PRADESH', poly: [[0.38,0.38],[0.54,0.37],[0.53,0.49],[0.38,0.49]], cx: 0.46, cy: 0.43, fill: 'rgba(148, 163, 184, 0.08)' },
+          { name: 'MAHARASHTRA', poly: [[0.35,0.50],[0.51,0.49],[0.49,0.62],[0.37,0.61]], cx: 0.43, cy: 0.55, fill: 'rgba(59, 130, 246, 0.13)' },
+          { name: 'BENGAL & ODISHA', poly: [[0.59,0.38],[0.69,0.38],[0.66,0.52],[0.55,0.52]], cx: 0.62, cy: 0.45, fill: 'rgba(168, 85, 247, 0.10)' },
+          { name: 'ASSAM & NORTH-EAST', poly: [[0.71,0.29],[0.85,0.26],[0.85,0.39],[0.71,0.38]], cx: 0.78, cy: 0.33, fill: 'rgba(56, 239, 125, 0.11)' },
+          { name: 'KARNATAKA', poly: [[0.37,0.61],[0.46,0.62],[0.45,0.76],[0.39,0.74]], cx: 0.42, cy: 0.68, fill: 'rgba(168, 85, 247, 0.14)' },
+          { name: 'ANDHRA & TELANGANA', poly: [[0.46,0.58],[0.57,0.56],[0.54,0.71],[0.46,0.71]], cx: 0.51, cy: 0.64, fill: 'rgba(0, 229, 255, 0.10)' },
+          { name: 'TAMIL NADU & KERALA', poly: [[0.41,0.74],[0.53,0.71],[0.48,0.88],[0.44,0.87]], cx: 0.47, cy: 0.80, fill: 'rgba(244, 63, 94, 0.14)' }
+        ],
         hubs: [
-          { id: 'ladakh', name: 'Ladakh Clean Grid', rx: 0.46, ry: 0.16, level: 0, cost: 150, income: 40, gdp: 0.4, color: '#38ef7d', threat: false, note: 'Inspired by France/China clean energy grids' },
-          { id: 'delhi', name: 'Delhi Sovereign AI', rx: 0.48, ry: 0.31, level: 1, cost: 220, income: 55, gdp: 0.6, color: '#00e5ff', threat: false, note: 'Countering US Silicon Valley AI dominance' },
-          { id: 'dholera', name: 'Dholera 3nm Chip Fab', rx: 0.33, ry: 0.48, level: 0, cost: 550, income: 160, gdp: 1.4, color: '#ff9933', threat: false, note: 'Capturing global semiconductor supply chain' },
-          { id: 'bengaluru', name: 'Bengaluru Deep-Tech', rx: 0.46, ry: 0.72, level: 0, cost: 1300, income: 420, gdp: 3.0, color: '#a855f7', threat: false, note: 'High-value IP & software product exports' },
-          { id: 'sriharikota', name: 'ISRO Heavy Spaceport', rx: 0.54, ry: 0.75, level: 0, cost: 3200, income: 1200, gdp: 6.2, color: '#f43f5e', threat: false, note: 'Commercial satellite & lunar launch monopoly' }
+          { id: 'ladakh', state: 'Ladakh', name: 'Ladakh Green Hydrogen', rx: 0.46, ry: 0.14, level: 0, cost: 160, income: 35, gdp: 0.18, color: '#38ef7d', threat: false, note: '100% Renewable High-Altitude Grid' },
+          { id: 'up', state: 'Uttar Pradesh', name: 'UP Defence & Expressways', rx: 0.55, ry: 0.30, level: 1, cost: 220, income: 50, gdp: 0.25, color: '#00e5ff', threat: false, note: 'BrahMos & Electronics Manufacturing Corridor' },
+          { id: 'gujarat', state: 'Gujarat', name: 'Dholera 3nm Chip Fab', rx: 0.32, ry: 0.46, level: 0, cost: 500, income: 130, gdp: 0.55, color: '#ff9933', threat: false, note: 'Semiconductor & GIFT City FinTech' },
+          { id: 'maharashtra', state: 'Maharashtra', name: 'Mumbai FinTech & Ports', rx: 0.42, ry: 0.55, level: 0, cost: 950, income: 260, gdp: 0.90, color: '#3b82f6', threat: false, note: 'Vadhavan Mega-Port & AI Data Centers' },
+          { id: 'karnataka', state: 'Karnataka', name: 'Bengaluru Quantum & AI', rx: 0.42, ry: 0.68, level: 0, cost: 1800, income: 520, gdp: 1.50, color: '#a855f7', threat: false, note: 'Sovereign Foundation Models & Deep-Tech' },
+          { id: 'tamilnadu', state: 'Tamil Nadu', name: 'ISRO & EV Export Hub', rx: 0.49, ry: 0.76, level: 0, cost: 3400, income: 1100, gdp: 2.60, color: '#f43f5e', threat: false, note: 'Sriharikota Heavy Rockets & Global EV Hub' }
         ]
       },
       usa: {
-        name: '🇺🇸 USA ($29T)', isHome: false, color: '#3b82f6', gdpTarget: '$29.2 Trillion (#1)',
-        earns: 'Big Tech IP (Apple, Nvidia, Google), Dollar Reserve, Defense & Aerospace Exports, Financial Markets.',
-        spends: '3.5% of GDP on R&D ($900B+), $880B Defense Tech, AI Chips (CHIPS Act), Private Space (SpaceX).',
-        lesson: 'India Lesson: Owning core IP (AI models, Chip designs, OS) creates 10x higher profit margins than outsourcing!',
-        outline: [[0.22,0.25],[0.45,0.25],[0.68,0.24],[0.78,0.22],[0.74,0.42],[0.67,0.62],[0.63,0.72],[0.55,0.60],[0.45,0.63],[0.38,0.72],[0.26,0.58],[0.20,0.42]],
+        name: '🇺🇸 USA ($29.2T)', isHome: false, color: '#3b82f6',
+        earns: 'Big Tech IP (Nvidia, Apple, Microsoft), US Dollar Reserve, Defense & Aerospace Exports, Wall Street.',
+        spends: '$900B+ R&D (3.5% of GDP), $880B Defense Tech, CHIPS Act ($52B), Private Space (SpaceX).',
+        lesson: 'India Lesson: Owning core IP (AI models, Chip design, OS) creates 10x higher wealth than IT services!',
+        outline: [[0.20,0.24],[0.45,0.24],[0.68,0.23],[0.79,0.21],[0.75,0.42],[0.68,0.62],[0.63,0.73],[0.55,0.60],[0.45,0.64],[0.37,0.73],[0.25,0.58],[0.19,0.42]],
+        states: [
+          { name: 'CALIFORNIA', poly: [[0.19,0.34],[0.28,0.34],[0.29,0.56],[0.22,0.55]], cx: 0.24, cy: 0.45, fill: 'rgba(59,130,246,0.15)' },
+          { name: 'TEXAS', poly: [[0.37,0.50],[0.51,0.50],[0.49,0.70],[0.38,0.68]], cx: 0.44, cy: 0.60, fill: 'rgba(255,153,51,0.12)' },
+          { name: 'NEW YORK & DC', poly: [[0.62,0.26],[0.76,0.26],[0.74,0.46],[0.62,0.46]], cx: 0.69, cy: 0.36, fill: 'rgba(56,239,125,0.12)' }
+        ],
         hubs: [
-          { id: 'sv', name: 'Silicon Valley AI & Chips', rx: 0.24, ry: 0.45, scanned: false, intelGain: 25, budget: '$450B/yr R&D', detail: 'Nvidia, Apple & OpenAI generate trillions from software & chip IP.' },
-          { id: 'tx', name: 'Texas Space & Energy', rx: 0.45, ry: 0.62, scanned: false, intelGain: 25, budget: '$180B/yr', detail: 'Reusable rockets (Starbase) & shale energy exports.' },
-          { id: 'dc', name: 'Pentagon & DARPA Labs', rx: 0.68, ry: 0.42, scanned: false, intelGain: 30, budget: '$880B/yr', detail: 'DARPA funded GPS & Internet before commercializing them.' }
+          { id: 'sv', name: 'California: Silicon Valley', rx: 0.24, ry: 0.45, scanned: false, intelGain: 25, budget: '$450B/yr R&D', detail: 'Nvidia, Apple & AI Labs generate trillions in IP exports.' },
+          { id: 'tx', name: 'Texas: Starbase & Energy', rx: 0.44, ry: 0.60, scanned: false, intelGain: 25, budget: '$180B/yr', detail: 'Reusable rockets & global LNG energy exports.' },
+          { id: 'dc', name: 'NY & DC: Finance & DARPA', rx: 0.69, ry: 0.36, scanned: false, intelGain: 30, budget: '$880B/yr', detail: 'Wall Street capital + DARPA defense innovation.' }
         ]
       },
       china: {
-        name: '🇨🇳 CHINA ($19T)', isHome: false, color: '#ef4444', gdpTarget: '$19.5 Trillion (#2)',
-        earns: 'Global Manufacturing Workshop (30% of world output), EVs, Solar Panels, Batteries & Rare Earths.',
-        spends: 'Massive Infrastructure (45,000 km High-Speed Rail), Green Tech Subsidies, State Semiconductor Funds.',
-        lesson: 'India Lesson: Building world-class ports, bullet freight & massive factories turns a nation into an export powerhouse!',
-        outline: [[0.25,0.35],[0.42,0.28],[0.58,0.22],[0.74,0.18],[0.78,0.32],[0.72,0.48],[0.68,0.65],[0.52,0.72],[0.36,0.62],[0.24,0.50]],
+        name: '🇨🇳 CHINA ($19.5T)', isHome: false, color: '#ef4444',
+        earns: '30% of Global Manufacturing, EVs (BYD), Solar Panels, Batteries, Electronics & Rare Earths.',
+        spends: '45,000 km High-Speed Rail, Mega-Ports, Green Energy Subsidies, State Semiconductor Funds.',
+        lesson: 'India Lesson: World-class ports, bullet freight & massive scale factories turn a nation into an export giant!',
+        outline: [[0.23,0.34],[0.42,0.27],[0.58,0.21],[0.75,0.17],[0.79,0.32],[0.73,0.49],[0.68,0.66],[0.52,0.73],[0.35,0.62],[0.22,0.50]],
+        states: [
+          { name: 'XINJIANG SOLAR BELT', poly: [[0.23,0.34],[0.43,0.28],[0.42,0.48],[0.23,0.48]], cx: 0.33, cy: 0.39, fill: 'rgba(250,204,21,0.12)' },
+          { name: 'BEIJING-SHANGHAI', poly: [[0.56,0.22],[0.76,0.22],[0.74,0.47],[0.56,0.47]], cx: 0.66, cy: 0.34, fill: 'rgba(239,68,68,0.14)' },
+          { name: 'GUANGDONG (SHENZHEN)', poly: [[0.52,0.52],[0.70,0.52],[0.68,0.68],[0.51,0.68]], cx: 0.61, cy: 0.60, fill: 'rgba(0,229,255,0.14)' }
+        ],
         hubs: [
-          { id: 'sz', name: 'Shenzhen Hardware Hub', rx: 0.62, ry: 0.65, scanned: false, intelGain: 25, budget: '$320B/yr', detail: 'Fastest electronics prototyping & EV battery ecosystem.' },
-          { id: 'bj', name: 'HSR & Mega-Infra Grid', rx: 0.64, ry: 0.34, scanned: false, intelGain: 25, budget: '$1.1T Infra', detail: '45,000 km High-Speed Rail slashes logistics cost.' },
-          { id: 'xj', name: 'Solar & Rare Earth Belt', rx: 0.34, ry: 0.38, scanned: false, intelGain: 30, budget: '$210B/yr', detail: 'Controls 80% of global solar panel & lithium processing.' }
+          { id: 'sz', name: 'Guangdong: Shenzhen Hub', rx: 0.61, ry: 0.60, scanned: false, intelGain: 25, budget: '$320B/yr', detail: 'Fastest hardware, EV & drone manufacturing ecosystem.' },
+          { id: 'bj', name: 'Beijing-Shanghai HSR', rx: 0.66, ry: 0.34, scanned: false, intelGain: 25, budget: '$1.1T Infra', detail: '45,000 km High-Speed Rail slashes logistics cost.' },
+          { id: 'xj', name: 'Xinjiang Solar & Lithium', rx: 0.33, ry: 0.39, scanned: false, intelGain: 30, budget: '$210B/yr', detail: 'Controls 80% of global solar & battery supply chain.' }
         ]
       },
       russia: {
-        name: '🇷🇺 RUSSIA ($2.1T)', isHome: false, color: '#a855f7', gdpTarget: '$2.1 Trillion (Resource & Space)',
-        earns: 'Oil, Natural Gas, Nuclear Reactors (Rosatom), Fertilizers, Wheat & Heavy Defense Systems.',
-        spends: 'Heavy Metallurgy, Arctic Shipping Routes, Rocket Engines & Nuclear Icebreakers.',
-        lesson: 'India Lesson: Energy independence & strong indigenous defense engineering protect sovereignty during global crises.',
+        name: '🇷🇺 RUSSIA ($2.1T)', isHome: false, color: '#a855f7',
+        earns: 'Oil, Natural Gas, Nuclear Reactors (Rosatom), Titanium, Fertilizers & Heavy Defense Tech.',
+        spends: 'Nuclear Icebreakers, Arctic Routes, Heavy Rocket Engines & Metallurgy.',
+        lesson: 'India Lesson: Energy security & indigenous defense engineering protect sovereignty during global crises.',
         outline: [[0.18,0.32],[0.35,0.22],[0.58,0.18],[0.82,0.22],[0.86,0.42],[0.70,0.55],[0.48,0.56],[0.28,0.58],[0.16,0.48]],
+        states: [
+          { name: 'MOSCOW & URALS', poly: [[0.18,0.32],[0.40,0.24],[0.39,0.54],[0.18,0.48]], cx: 0.29, cy: 0.40, fill: 'rgba(168,85,247,0.14)' },
+          { name: 'SIBERIA RESOURCES', poly: [[0.40,0.22],[0.66,0.20],[0.65,0.52],[0.40,0.52]], cx: 0.53, cy: 0.36, fill: 'rgba(59,130,246,0.12)' },
+          { name: 'FAR EAST SPACEPORT', poly: [[0.66,0.22],[0.84,0.24],[0.82,0.48],[0.66,0.50]], cx: 0.75, cy: 0.37, fill: 'rgba(244,63,94,0.12)' }
+        ],
         hubs: [
-          { id: 'ros', name: 'Rosatom Nuclear Tech', rx: 0.30, ry: 0.42, scanned: false, intelGain: 25, budget: '$45B/yr', detail: 'Builds 70% of global nuclear power reactor exports.' },
-          { id: 'sib', name: 'Siberian Energy & Minerals', rx: 0.56, ry: 0.36, scanned: false, intelGain: 25, budget: '$240B Exports', detail: 'Massive natural gas, titanium, and palladium reserves.' },
-          { id: 'vos', name: 'Vostochny Space & Cryo', rx: 0.76, ry: 0.44, scanned: false, intelGain: 30, budget: '$35B/yr', detail: 'Deep expertise in heavy rocket propulsion & metallurgy.' }
+          { id: 'ros', name: 'Moscow: Rosatom Nuclear', rx: 0.29, ry: 0.40, scanned: false, intelGain: 25, budget: '$45B/yr', detail: 'Builds 70% of global nuclear power reactor exports.' },
+          { id: 'sib', name: 'Siberia: Gas & Titanium', rx: 0.53, ry: 0.36, scanned: false, intelGain: 25, budget: '$240B Exports', detail: 'Massive energy & aerospace-grade titanium reserves.' },
+          { id: 'vos', name: 'Vostochny Rocket Engines', rx: 0.75, ry: 0.37, scanned: false, intelGain: 30, budget: '$35B/yr', detail: 'Cryogenic rocket propulsion & heavy metallurgy.' }
         ]
       },
       france: {
-        name: '🇫🇷 FRANCE ($3.2T)', isHome: false, color: '#38ef7d', gdpTarget: '$3.2 Trillion (Aerospace & Nuclear)',
-        earns: 'Aerospace (Airbus), Luxury & Fashion Brands, Nuclear Electricity Exports, Tourism & Pharmaceuticals.',
-        spends: '70% Nuclear Electricity Grid (EDF), High-Speed TGV Rail, Green Hydrogen & AI Research.',
-        lesson: 'India Lesson: Clean, cheap 24/7 nuclear power + global luxury/consumer brands drive high per-capita wealth!',
+        name: '🇫🇷 FRANCE ($3.2T)', isHome: false, color: '#38ef7d',
+        earns: 'Aerospace (Airbus), Global Luxury Brands (LVMH), Nuclear Power Exports, Tourism & Pharma.',
+        spends: '70% Nuclear Clean Grid (EDF), TGV High-Speed Rail, Green Hydrogen & Mistral AI.',
+        lesson: 'India Lesson: 24/7 clean nuclear power + global consumer/luxury brands drive high per-capita wealth!',
         outline: [[0.44,0.20],[0.56,0.24],[0.64,0.38],[0.60,0.58],[0.52,0.72],[0.38,0.68],[0.34,0.50],[0.32,0.34]],
+        states: [
+          { name: 'ILE-DE-FRANCE (PARIS)', poly: [[0.40,0.22],[0.56,0.24],[0.56,0.42],[0.38,0.42]], cx: 0.48, cy: 0.32, fill: 'rgba(56,239,125,0.14)' },
+          { name: 'OCCITANIE (TOULOUSE)', poly: [[0.36,0.46],[0.58,0.46],[0.54,0.68],[0.38,0.66]], cx: 0.47, cy: 0.56, fill: 'rgba(0,229,255,0.14)' }
+        ],
         hubs: [
-          { id: 'tou', name: 'Toulouse Aerospace (Airbus)', rx: 0.44, ry: 0.62, scanned: false, intelGain: 25, budget: '$85B/yr', detail: 'World leader in commercial aviation & satellite manufacturing.' },
-          { id: 'edf', name: '70% Nuclear Clean Grid', rx: 0.52, ry: 0.44, scanned: false, intelGain: 25, budget: '$110B/yr', detail: 'Lowest carbon electricity in Europe; exports power to neighbors.' },
-          { id: 'par', name: 'Paris Luxury & Quantum', rx: 0.48, ry: 0.30, scanned: false, intelGain: 30, budget: '$150B/yr', detail: 'Global luxury giants (LVMH) + Mistral AI innovation.' }
+          { id: 'par', name: 'Paris: Luxury & AI', rx: 0.48, ry: 0.32, scanned: false, intelGain: 25, budget: '$150B/yr', detail: 'Global luxury giants + European sovereign AI.' },
+          { id: 'tou', name: 'Toulouse: Airbus Space', rx: 0.47, ry: 0.56, scanned: false, intelGain: 30, budget: '$85B/yr', detail: 'World leader in commercial aircraft & satellites.' }
         ]
       }
     };
 
     const state = {
       currentWorld: 'india',
-      funds: 300,
+      funds: 350,
       gdp: 4.30,
       intel: 0,
       shake: 0,
@@ -205,9 +230,9 @@
 
     function switchWorld(key) {
       state.currentWorld = key;
-      state.rover.x = state.rover.tx = 0.5;
-      state.rover.y = state.rover.ty = 0.48;
-      playTone(480, 'sine', 0.15, 0.06);
+      state.rover.x = state.rover.tx = 0.48;
+      state.rover.y = state.rover.ty = 0.46;
+      playTone(480, 'sine', 0.14, 0.05);
       renderWorldBar();
       renderIntelPanel();
       renderDock();
@@ -232,10 +257,10 @@
       if (w.isHome) { panel.style.display = 'none'; return; }
       panel.style.display = 'block';
       panel.innerHTML = `
-        <h3>📊 ${w.name} — Economic Intel</h3>
-        <div class="intel-section"><b>💰 Kahan Se Kamate Hain (Revenue):</b>${w.earns}</div>
-        <div class="intel-section"><b>🏗️ Kahan Kharch Karte Hain (Budget):</b>${w.spends}</div>
-        <div class="intel-lesson"><b>🇮🇳 Bharat Strategy:</b> ${w.lesson}</div>
+        <h3>📊 ${w.name} — Budget & Revenue</h3>
+        <div class="intel-section"><b>💰 Kahan Se Kamate Hain:</b>${w.earns}</div>
+        <div class="intel-section"><b>🏗️ Kahan Kharch Karte Hain:</b>${w.spends}</div>
+        <div class="intel-lesson"><b>🇮🇳 Bharat Action Plan:</b> ${w.lesson}</div>
       `;
     }
 
@@ -247,7 +272,7 @@
         if (d < minD) { minD = d; nearest = h; }
       });
 
-      if (!nearest || minD > 80) {
+      if (!nearest || minD > 75) {
         const gain = 20 + state.intel * 2;
         state.funds += gain;
         spawnParticles(state.rover.x * W, state.rover.y * H, '#00e5ff', `+₹${gain} Cr`);
@@ -255,7 +280,6 @@
         return;
       }
 
-      // Foreign Country: Scan Strategy to gain Intel Points & Funds!
       if (!w.isHome) {
         if (!nearest.scanned) {
           nearest.scanned = true;
@@ -263,7 +287,7 @@
           const bonusFunds = nearest.intelGain * 15;
           state.funds += bonusFunds;
           spawnParticles(nearest.rx * W, nearest.ry * H, '#38ef7d', `INTEL +${nearest.intelGain} 🧠 | +₹${bonusFunds} Cr`);
-          playTone(760, 'triangle', 0.3, 0.09);
+          playTone(760, 'triangle', 0.3, 0.08);
           renderDock();
         } else {
           spawnParticles(nearest.rx * W, nearest.ry * H, '#00e5ff', 'Already Scanned! Apply in Bharat 🇮🇳');
@@ -271,34 +295,32 @@
         return;
       }
 
-      // India: Neutralize Threat
       if (nearest.threat) {
         nearest.threat = false;
-        const reward = Math.round(nearest.cost * 0.65);
-        state.funds += reward; state.gdp += 0.6;
-        spawnParticles(nearest.rx * W, nearest.ry * H, '#38ef7d', `DEFENDED! +₹${reward} Cr`);
-        playTone(800, 'triangle', 0.3, 0.1);
+        const reward = Math.round(nearest.cost * 0.6);
+        state.funds += reward; state.gdp += 0.35;
+        spawnParticles(nearest.rx * W, nearest.ry * H, '#38ef7d', `DEFENDED ${nearest.state.toUpperCase()}! +₹${reward} Cr`);
+        playTone(800, 'triangle', 0.3, 0.09);
         document.getElementById('alertBanner').style.display = 'none';
         return;
       }
 
-      // India: Build / Upgrade (Intel Points give discount & extra GDP boost!)
       const discount = Math.min(0.4, state.intel * 0.002);
       const finalCost = Math.round(nearest.cost * (1 - discount));
 
       if (state.funds >= finalCost) {
         state.funds -= finalCost;
         nearest.level++;
-        const intelMultiplier = 1 + (state.intel * 0.01);
+        const intelMultiplier = 1 + (state.intel * 0.005);
         state.gdp += nearest.gdp * intelMultiplier;
-        nearest.cost = Math.round(nearest.cost * 1.46);
-        spawnParticles(nearest.rx * W, nearest.ry * H, nearest.color, `LVL ${nearest.level} BUILT!`);
-        playTone(440, 'square', 0.25, 0.08);
+        nearest.cost = Math.round(nearest.cost * 1.48);
+        spawnParticles(nearest.rx * W, nearest.ry * H, nearest.color, `${nearest.state}: LVL ${nearest.level}!`);
+        playTone(440, 'square', 0.25, 0.07);
         state.shake = 5;
-        if (nearest.id === 'sriharikota') state.rockets.push({ x: nearest.rx * W, y: nearest.ry * H, vy: -1.6 });
+        if (nearest.id === 'tamilnadu') state.rockets.push({ x: nearest.rx * W, y: nearest.ry * H, vy: -1.6 });
         renderDock();
       } else {
-        playTone(160, 'sawtooth', 0.15, 0.06);
+        playTone(160, 'sawtooth', 0.15, 0.05);
         spawnParticles(nearest.rx * W, nearest.ry * H, '#ef4444', `Need ₹${finalCost} Cr!`);
       }
     }
@@ -315,15 +337,15 @@
         if (w.isHome) {
           const finalCost = Math.round(h.cost * (1 - discount));
           card.innerHTML = `
-            <h4>${h.name} [Lv.${h.level}]</h4>
-            <p>+₹${h.income * Math.max(1, h.level)} Cr/s | +$${h.gdp}T</p>
-            <span>Build: ₹${finalCost} Cr ${discount > 0 ? '(-' + Math.round(discount*100) + '% Intel)' : ''}</span>
+            <h4>${h.state}: Lv.${h.level}</h4>
+            <p>${h.name}</p>
+            <span>₹${finalCost} Cr (+$${h.gdp}T)</span>
           `;
         } else {
           card.innerHTML = `
             <h4>${h.name} ${h.scanned ? '✅' : '🔍'}</h4>
             <p>${h.budget}</p>
-            <span>${h.scanned ? 'Strategy Learned!' : 'Scan for +' + h.intelGain + ' Intel 🧠'}</span>
+            <span>${h.scanned ? 'Scanned!' : 'Scan +' + h.intelGain + ' Intel 🧠'}</span>
           `;
         }
         card.onclick = () => {
@@ -345,32 +367,30 @@
       state.rover.ty = (e.clientY - rect.top) / H;
     });
 
-    // Cyber Threat on India
     setInterval(() => {
       const indiaHubs = worlds.india.hubs.filter(h => h.level > 0 && !h.threat);
-      if (indiaHubs.length > 0 && Math.random() > 0.4) {
+      if (indiaHubs.length > 0 && Math.random() > 0.45) {
         indiaHubs[Math.floor(Math.random() * indiaHubs.length)].threat = true;
         document.getElementById('alertBanner').style.display = 'block';
-        playTone(210, 'sawtooth', 0.35, 0.08);
+        playTone(210, 'sawtooth', 0.35, 0.07);
       }
-    }, 25000);
+    }, 26000);
 
-    // Passive Income & Rank Loop
     setInterval(() => {
       let totalGps = 0;
       worlds.india.hubs.forEach(h => { if (!h.threat) totalGps += h.level * h.income; });
-      const intelBoost = 1 + (state.intel * 0.008);
+      const intelBoost = 1 + (state.intel * 0.005);
       state.funds += (totalGps * intelBoost) / 10;
-      state.gdp += (totalGps * intelBoost) / 110000;
+      state.gdp += (totalGps * intelBoost) / 450000; // Realistic progression pace
 
       document.getElementById('funds').textContent = '₹' + Math.floor(state.funds).toLocaleString('en-IN') + ' Cr';
       document.getElementById('gdp').textContent = '$' + state.gdp.toFixed(2) + ' T';
       document.getElementById('intel').textContent = state.intel + ' 🧠';
 
-      let rankText = '#4 (Next: France $3.2T Passed!)';
+      let rankText = '#4 (Next: Germany $4.7T)';
       if (state.gdp >= 29.2) rankText = '#1 GLOBAL SUPERPOWER 🏆 (Beat USA!)';
       else if (state.gdp >= 19.5) rankText = '#2 (Beat China! Target USA $29.2T)';
-      else if (state.gdp >= 5.0) rankText = '#3 (Target China $19.5T)';
+      else if (state.gdp >= 4.7) rankText = '#3 (Target China $19.5T)';
       document.getElementById('rank').textContent = rankText;
     }, 100);
 
@@ -382,69 +402,87 @@
       }
 
       ctx.fillStyle = '#040812'; ctx.fillRect(0, 0, W, H);
-      ctx.strokeStyle = 'rgba(30, 58, 110, 0.22)';
+      ctx.strokeStyle = 'rgba(30, 58, 110, 0.2)';
       for (let x = 0; x < W; x += 45) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
       for (let y = 0; y < H; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
 
       const w = worlds[state.currentWorld];
 
-      // Country Hologram Map
+      // 1. Draw Internal States / Provinces First
+      if (w.states) {
+        w.states.forEach(st => {
+          ctx.beginPath();
+          st.poly.forEach((pt, i) => {
+            const px = pt[0] * W, py = pt[1] * H;
+            i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+          });
+          ctx.closePath();
+          ctx.fillStyle = st.fill;
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // State Name Watermark
+          ctx.fillStyle = 'rgba(226, 232, 240, 0.38)';
+          ctx.font = 'bold 10px Segoe UI';
+          ctx.textAlign = 'center';
+          ctx.fillText(st.name, st.cx * W, st.cy * H);
+        });
+      }
+
+      // 2. Draw Outer Country Border
       ctx.beginPath();
       w.outline.forEach((pt, i) => {
         const px = pt[0] * W, py = pt[1] * H;
         i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       });
       ctx.closePath();
-      ctx.fillStyle = w.color + '14';
-      ctx.fill();
       ctx.strokeStyle = w.color;
       ctx.lineWidth = 2.5;
-      ctx.shadowColor = w.color; ctx.shadowBlur = 14;
+      ctx.shadowColor = w.color; ctx.shadowBlur = 12;
       ctx.stroke(); ctx.shadowBlur = 0;
 
-      // Draw Hubs
+      // 3. Draw Hubs
       let nearHub = null;
       w.hubs.forEach(h => {
         const hx = h.rx * W, hy = h.ry * H;
-        if (Math.hypot(hx - state.rover.x * W, hy - state.rover.y * H) < 80) nearHub = h;
+        if (Math.hypot(hx - state.rover.x * W, hy - state.rover.y * H) < 75) nearHub = h;
 
         ctx.beginPath();
-        ctx.arc(hx, hy, 15 + Math.sin(Date.now() / 220) * 3, 0, Math.PI * 2);
+        ctx.arc(hx, hy, 14 + Math.sin(Date.now() / 220) * 3, 0, Math.PI * 2);
         ctx.fillStyle = h.threat ? 'rgba(239,68,68,0.35)' : (w.isHome ? h.color + '33' : 'rgba(0,229,255,0.25)');
         ctx.fill();
 
         ctx.beginPath();
-        ctx.arc(hx, hy, 9, 0, Math.PI * 2);
+        ctx.arc(hx, hy, 8, 0, Math.PI * 2);
         ctx.fillStyle = h.threat ? '#ef4444' : (w.isHome ? (h.level > 0 ? h.color : '#475569') : (h.scanned ? '#38ef7d' : '#00e5ff'));
         ctx.fill();
 
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Segoe UI'; ctx.textAlign = 'center';
         const tag = w.isHome ? `${h.name} (Lv.${h.level})` : `${h.name} [${h.budget}]`;
-        ctx.fillText(tag, hx, hy - 18);
-        if (!w.isHome) {
-          ctx.fillStyle = '#94a3b8'; ctx.font = '11px Segoe UI';
-          ctx.fillText(h.detail, hx, hy + 24);
-        }
+        ctx.fillText(tag, hx, hy - 16);
       });
 
       const promptEl = document.getElementById('promptText');
       if (nearHub) {
         if (w.isHome) {
           promptEl.textContent = nearHub.threat
-            ? `🚨 PRESS SPACE TO DEFEND ${nearHub.name.toUpperCase()}!`
-            : `[SPACE] Build ${nearHub.name} — ${nearHub.note}`;
+            ? `🚨 PRESS SPACE TO DEFEND ${nearHub.state.toUpperCase()}!`
+            : `[SPACE] ${nearHub.state}: Build ${nearHub.name} — ${nearHub.note}`;
         } else {
           promptEl.textContent = nearHub.scanned
-            ? `✅ Strategy Extracted! Switch to 🇮🇳 BHARAT to invest with discount & boost!`
-            : `[SPACE] Scan ${nearHub.name} to learn their economic secret (+${nearHub.intelGain} Intel 🧠)`;
+            ? `✅ Strategy Learned! Switch to 🇮🇳 BHARAT to invest with Intel Bonus!`
+            : `[SPACE] Scan ${nearHub.name} (+${nearHub.intelGain} Intel 🧠)`;
         }
       } else {
         promptEl.textContent = w.isHome
-          ? 'Fly Rover to Indian Hubs to Build • Switch Countries at Top to Learn Global Strategies!'
-          : `Exploring ${w.name} • Fly Rover to Nodes & Press SPACE to Extract Economic Intel!`;
+          ? 'Fly Rover across Indian States to Build • Check USA/China/Russia/France to Scan Strategies!'
+          : `Exploring ${w.name} States • Fly Rover to Nodes & Press SPACE to Extract Budget Intel!`;
       }
 
-      // Rover Move
       const speed = 0.0055;
       if (state.keys['KeyW'] || state.keys['ArrowUp']) { state.rover.y -= speed; state.rover.ty = state.rover.y; }
       if (state.keys['KeyS'] || state.keys['ArrowDown']) { state.rover.y += speed; state.rover.ty = state.rover.y; }
@@ -454,10 +492,9 @@
       state.rover.y += (state.rover.ty - state.rover.y) * 0.08;
 
       const rx = state.rover.x * W, ry = state.rover.y * H;
-      ctx.fillStyle = '#ff9933'; ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ff9933'; ctx.beginPath(); ctx.arc(rx, ry, 9, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
 
-      // Rockets & Particles
       state.rockets.forEach((r, idx) => {
         r.y += r.vy; r.vy *= 1.04;
         ctx.fillStyle = '#fff'; ctx.fillRect(r.x - 3, r.y - 12, 6, 16);
@@ -466,7 +503,7 @@
       state.particles.forEach((p, idx) => {
         p.x += p.vx; p.y += p.vy; p.life -= 0.024;
         ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4);
-        if (p.text) { ctx.font = 'bold 13px Segoe UI'; ctx.fillText(p.text, p.x, p.y - 8); }
+        if (p.text) { ctx.font = 'bold 12px Segoe UI'; ctx.fillText(p.text, p.x, p.y - 8); }
         ctx.globalAlpha = 1;
         if (p.life <= 0) state.particles.splice(idx, 1);
       });
