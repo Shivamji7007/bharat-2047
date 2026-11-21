@@ -2,330 +2,381 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BHARAT 2047: Rise of a Superpower</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>BHARAT 2047: Command & Conquer</title>
   <style>
-    :root {
-      --bg: #070d19;
-      --card: #0f192d;
-      --border: #1f3358;
-      --saffron: #ff9933;
-      --green: #138808;
-      --cyan: #00e5ff;
-      --gold: #ffd700;
-      --text: #eef4ff;
-      --muted: #8ca0c4;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body {
-      background: radial-gradient(circle at top, #10213e 0%, var(--bg) 70%);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 16px;
-      display: flex;
-      justify-content: center;
-    }
-    .container { max-width: 960px; width: 100%; }
-    header {
-      text-align: center;
-      padding: 18px;
-      background: linear-gradient(135deg, rgba(255,153,51,0.14), rgba(0,229,255,0.08), rgba(19,136,8,0.14));
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      margin-bottom: 16px;
-    }
-    header h1 {
-      font-size: 1.9rem;
-      letter-spacing: 1px;
-      background: linear-gradient(90deg, var(--saffron), #ffffff, #38ef7d);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    header p { color: var(--muted); font-size: 0.92rem; margin-top: 4px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none; }
+    body { background: #040812; color: #eef4ff; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
+    /* Top HUD */
+    .hud {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+      padding: 10px 18px; background: rgba(10, 18, 36, 0.95); border-bottom: 1px solid #1e3a6e;
+      z-index: 10; gap: 10px;
     }
-    .stat-box {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
-      text-align: center;
-    }
-    .stat-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
-    .stat-value { font-size: 1.45rem; font-weight: 700; margin-top: 4px; color: var(--cyan); }
-    .stat-box.rank .stat-value { color: var(--gold); }
-    .stat-box.gdp .stat-value { color: #38ef7d; }
+    .brand { font-weight: 800; font-size: 1.15rem; letter-spacing: 1px; background: linear-gradient(90deg, #ff9933, #fff, #38ef7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .metrics { display: flex; gap: 18px; flex-wrap: wrap; }
+    .metric { font-size: 0.85rem; color: #8ca0c4; }
+    .metric b { display: block; font-size: 1.05rem; color: #00e5ff; }
+    .metric.gdp b { color: #38ef7d; }
+    .metric.rank b { color: #ffd700; }
 
-    .progress-wrap {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 16px;
-      margin-bottom: 16px;
-    }
-    .progress-top { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px; }
-    .bar-bg { height: 12px; background: #060b14; border-radius: 99px; overflow: hidden; }
-    .bar-fill {
-      height: 100%;
-      width: 8%;
-      background: linear-gradient(90deg, var(--saffron), var(--cyan), #38ef7d);
-      transition: width 0.3s ease;
-    }
+    /* Main Game Viewport */
+    .stage { position: relative; flex: 1; width: 100%; overflow: hidden; }
+    canvas { display: block; width: 100%; height: 100%; }
 
-    .main-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 16px; }
-    @media (max-width: 740px) { .main-grid { grid-template-columns: 1fr; } }
+    /* Bottom Action Dock */
+    .dock {
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px; background: rgba(8, 15, 30, 0.9);
+      padding: 10px 14px; border-radius: 16px; border: 1px solid #264885;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7); z-index: 10; max-width: 95vw; overflow-x: auto;
+    }
+    .hub-card {
+      background: #0e1b36; border: 1px solid #1f3b70; border-radius: 10px;
+      padding: 8px 12px; min-width: 145px; cursor: pointer; transition: 0.15s; text-align: left;
+    }
+    .hub-card.active { border-color: #ff9933; box-shadow: 0 0 14px rgba(255,153,51,0.4); transform: translateY(-3px); }
+    .hub-card h4 { font-size: 0.85rem; color: #fff; }
+    .hub-card p { font-size: 0.72rem; color: #8ca0c4; margin: 2px 0; }
+    .hub-card span { font-size: 0.78rem; font-weight: 700; color: #38ef7d; }
 
-    .action-panel, .projects-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px;
+    /* Floating Prompt */
+    .prompt {
+      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(255, 153, 51, 0.16); border: 1px solid #ff9933; color: #ffcf9e;
+      padding: 8px 16px; border-radius: 99px; font-size: 0.85rem; font-weight: 600;
+      pointer-events: none; text-align: center;
     }
-    .core-btn {
-      width: 100%;
-      padding: 26px 16px;
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #04101e;
-      background: linear-gradient(135deg, var(--saffron), #ffb347);
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      box-shadow: 0 8px 24px rgba(255, 153, 51, 0.3);
-      transition: transform 0.08s ease;
+    .alert-banner {
+      position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
+      background: rgba(239, 68, 68, 0.92); color: #fff; padding: 8px 18px;
+      border-radius: 10px; font-weight: 700; font-size: 0.88rem; display: none;
+      animation: pulse 0.8s infinite alternate;
     }
-    .core-btn:active { transform: scale(0.97); }
-    .hint { text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
-
-    .fact-card {
-      margin-top: 16px;
-      background: rgba(0, 229, 255, 0.06);
-      border-left: 3px solid var(--cyan);
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 0.86rem;
-      line-height: 1.45;
-    }
-    .fact-card strong { color: var(--cyan); display: block; margin-bottom: 4px; }
-
-    .project-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      margin-bottom: 10px;
-      background: rgba(255,255,255,0.02);
-    }
-    .proj-info h3 { font-size: 1rem; color: #fff; }
-    .proj-info p { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
-    .proj-badge { font-size: 0.75rem; color: #38ef7d; font-weight: 600; margin-top: 4px; display: inline-block; }
-
-    .buy-btn {
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--cyan);
-      background: rgba(0, 229, 255, 0.12);
-      color: var(--cyan);
-      font-weight: 700;
-      cursor: pointer;
-      min-width: 115px;
-      transition: 0.2s;
-    }
-    .buy-btn:hover:not(:disabled) { background: var(--cyan); color: #05101f; }
-    .buy-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: #334155; color: #64748b; }
-
-    .share-bar {
-      margin-top: 14px;
-      display: flex;
-      gap: 10px;
-    }
-    .share-btn {
-      flex: 1;
-      padding: 11px;
-      border-radius: 10px;
-      border: none;
-      background: #138808;
-      color: white;
-      font-weight: 700;
-      cursor: pointer;
-    }
+    @keyframes pulse { from { transform: translateX(-50%) scale(1); } to { transform: translateX(-50%) scale(1.05); } }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>🇮🇳 BHARAT 2047: RISE OF A SUPERPOWER</h1>
-      <p>Build India's Tech, Space & Clean Energy Infrastructure to Reach Global Rank #1</p>
-    </header>
-
-    <div class="stats-grid">
-      <div class="stat-box">
-        <div class="stat-label">Innovation Capital</div>
-        <div class="stat-value" id="funds">₹100 Cr</div>
-      </div>
-      <div class="stat-box gdp">
-        <div class="stat-label">India GDP</div>
-        <div class="stat-value" id="gdp">$4.30 T</div>
-      </div>
-      <div class="stat-box rank">
-        <div class="stat-label">Global Rank</div>
-        <div class="stat-value" id="rank">#4</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Growth / Sec</div>
-        <div class="stat-value" id="gps">₹0 Cr/s</div>
-      </div>
-    </div>
-
-    <div class="progress-wrap">
-      <div class="progress-top">
-        <span>Mission 2047: Developed Nation Status</span>
-        <span id="pct">8%</span>
-      </div>
-      <div class="bar-bg"><div class="bar-fill" id="bar"></div></div>
-    </div>
-
-    <div class="main-grid">
-      <div class="action-panel">
-        <button class="core-btn" id="innovateBtn">⚡ INNOVATE & BUILD (+₹25 Cr)</button>
-        <div class="hint">Tip: Press <b>SPACEBAR</b> or Tap rapidly to boost R&D!</div>
-
-        <div class="fact-card">
-          <strong>🚀 Real Bharat Tech Milestone:</strong>
-          <span id="factText">UPI processes over 14 billion real-time digital transactions every month, making India the world leader in fintech infrastructure.</span>
-        </div>
-
-        <div class="share-bar">
-          <button class="share-btn" id="shareBtn">📤 Copy Score to Challenge Friends</button>
-        </div>
-      </div>
-
-      <div class="projects-panel" id="projectList"></div>
+  <div class="hud">
+    <div class="brand">🇮🇳 BHARAT 2047 // COMMAND</div>
+    <div class="metrics">
+      <div class="metric">FUNDS<b id="funds">₹250 Cr</b></div>
+      <div class="metric gdp">INDIA GDP<b id="gdp">$4.30 T</b></div>
+      <div class="metric rank">GLOBAL RANK<b id="rank">#4</b></div>
+      <div class="metric">OUTPUT<b id="gps">₹0 Cr/s</b></div>
     </div>
   </div>
 
+  <div class="stage">
+    <canvas id="gameCanvas"></canvas>
+    <div class="prompt" id="promptText">Use WASD / Arrows or Click Map to Fly Rover • Press SPACE to Build/Upgrade</div>
+    <div class="alert-banner" id="alertBanner">⚠️ CYBER THREAT DETECTED! Fly Rover to Flashing Node to Defend!</div>
+    <div class="dock" id="dock"></div>
+  </div>
+
   <script>
-    let state = {
-      funds: 100,
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+
+    function resize() {
+      W = canvas.width = canvas.parentElement.clientWidth;
+      H = canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Synthesized Sound Engine (Zero external files)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(freq, type, duration, vol = 0.08) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+
+    // Game State
+    const state = {
+      funds: 250,
       gdp: 4.30,
-      clickPower: 25,
-      autoIncome: 0,
-      projects: [
-        { id: 'upi', name: 'Digital Public Infra & AI Labs', desc: 'Bengaluru & Hyderabad AI Hubs', cost: 100, income: 20, gdpBoost: 0.15, count: 0, fact: 'IndiaStack & Bhashini AI are bringing digital services to 1.4 billion citizens in 22+ languages.' },
-        { id: 'solar', name: 'Ladakh & Kutch Giga Solar Grid', desc: '100% Clean Renewable Power', cost: 450, income: 95, gdpBoost: 0.45, count: 0, fact: 'Bhagla & Khavda Renewable Parks are among the largest clean energy installations on Earth.' },
-        { id: 'semi', name: 'Dholera Semiconductor Fab', desc: 'Made-in-India 3nm Chips', cost: 1800, income: 420, gdpBoost: 1.25, count: 0, fact: 'Indigenous semiconductor fabs reduce import reliance and power global electronics exports.' },
-        { id: 'isro', name: 'ISRO Heavy Launch & Moon Base', desc: 'Sriharikota Reusable Rockets', cost: 6500, income: 1650, gdpBoost: 3.50, count: 0, fact: 'Chandrayaan-3 made India the first nation to land near the Lunar South Pole at record cost efficiency.' },
-        { id: 'bullet', name: 'National High-Speed Quantum Rail', desc: 'Zero-Emission Logistics Spine', cost: 22000, income: 6000, gdpBoost: 8.00, count: 0, fact: 'High-speed freight and bullet corridors cut logistics costs from 13% to under 8% of GDP.' }
-      ]
+      gps: 0,
+      shake: 0,
+      rover: { x: 0.5, y: 0.52, tx: 0.5, ty: 0.52, angle: 0 },
+      hubs: [
+        { id: 'ladakh', name: 'Ladakh Solar Grid', rx: 0.46, ry: 0.16, level: 0, cost: 150, income: 35, gdp: 0.3, color: '#38ef7d', threat: false },
+        { id: 'delhi', name: 'Delhi Quantum AI', rx: 0.48, ry: 0.31, level: 1, cost: 200, income: 45, gdp: 0.4, color: '#00e5ff', threat: false },
+        { id: 'dholera', name: 'Dholera Chip Fab', rx: 0.33, ry: 0.48, level: 0, cost: 500, income: 140, gdp: 1.1, color: '#ff9933', threat: false },
+        { id: 'bengaluru', name: 'Bengaluru Space-Tech', rx: 0.46, ry: 0.72, level: 0, cost: 1200, income: 380, gdp: 2.5, color: '#a855f7', threat: false },
+        { id: 'sriharikota', name: 'ISRO Heavy Port', rx: 0.54, ry: 0.75, level: 0, cost: 3000, income: 1100, gdp: 5.5, color: '#f43f5e', threat: false }
+      ],
+      particles: [],
+      rockets: [],
+      keys: {}
     };
 
-    const fundsEl = document.getElementById('funds');
-    const gdpEl = document.getElementById('gdp');
-    const rankEl = document.getElementById('rank');
-    const gpsEl = document.getElementById('gps');
-    const pctEl = document.getElementById('pct');
-    const barEl = document.getElementById('bar');
-    const factEl = document.getElementById('factText');
-    const listEl = document.getElementById('projectList');
+    // Stylized India Polygon Coordinates (Normalized 0..1)
+    const indiaOutline = [
+      [0.45, 0.08], [0.51, 0.13], [0.54, 0.22], [0.62, 0.29], [0.76, 0.30],
+      [0.83, 0.26], [0.85, 0.34], [0.77, 0.41], [0.70, 0.39], [0.67, 0.47],
+      [0.60, 0.56], [0.55, 0.69], [0.49, 0.87], [0.45, 0.86], [0.39, 0.68],
+      [0.36, 0.53], [0.27, 0.50], [0.29, 0.43], [0.36, 0.38], [0.39, 0.26],
+      [0.41, 0.14]
+    ];
 
-    function formatCr(num) {
-      if (num >= 100000) return '₹' + (num / 100000).toFixed(2) + ' Lakh Cr';
-      return '₹' + Math.floor(num).toLocaleString('en-IN') + ' Cr';
-    }
-
-    function getRank(gdp) {
-      if (gdp >= 35) return '#1 SUPERPOWER 🏆';
-      if (gdp >= 22) return '#2';
-      if (gdp >= 10) return '#3';
-      return '#4';
-    }
-
-    function renderProjects() {
-      listEl.innerHTML = '';
-      state.projects.forEach((p, idx) => {
-        const div = document.createElement('div');
-        div.className = 'project-item';
-        div.innerHTML = `
-          <div class="proj-info">
-            <h3>${p.name} (${p.count})</h3>
-            <p>${p.desc}</p>
-            <span class="proj-badge">+₹${p.income} Cr/s | +$${p.gdpBoost}T GDP</span>
-          </div>
-          <button class="buy-btn" id="buy-${idx}" ${state.funds < p.cost ? 'disabled' : ''}>
-            Build<br>${formatCr(p.cost)}
-          </button>
-        `;
-        listEl.appendChild(div);
-        document.getElementById(`buy-${idx}`).onclick = () => buyProject(idx);
-      });
-    }
-
-    function buyProject(idx) {
-      const p = state.projects[idx];
-      if (state.funds >= p.cost) {
-        state.funds -= p.cost;
-        p.count++;
-        state.autoIncome += p.income;
-        state.gdp += p.gdpBoost;
-        state.clickPower += Math.ceil(p.income * 0.25);
-        p.cost = Math.round(p.cost * 1.45);
-        factEl.textContent = p.fact;
-        document.getElementById('innovateBtn').textContent = `⚡ INNOVATE & BUILD (+₹${state.clickPower} Cr)`;
-        renderProjects();
-        updateUI();
+    function spawnParticles(x, y, color, text = '') {
+      for (let i = 0; i < 14; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const s = 1 + Math.random() * 3.5;
+        state.particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, color, text: i === 0 ? text : '' });
       }
     }
 
-    function updateUI() {
-      fundsEl.textContent = formatCr(state.funds);
-      gdpEl.textContent = '$' + state.gdp.toFixed(2) + ' T';
-      rankEl.textContent = getRank(state.gdp);
-      gpsEl.textContent = formatCr(state.autoIncome) + '/s';
-      const progress = Math.min(100, Math.round((state.gdp / 35) * 100));
-      pctEl.textContent = progress + '%';
-      barEl.style.width = progress + '%';
+    function launchRocket(x, y) {
+      state.rockets.push({ x, y, vy: -1.5, trail: [] });
+      playTone(140, 'sawtooth', 0.8, 0.1);
+      state.shake = 8;
+    }
 
-      state.projects.forEach((p, idx) => {
-        const btn = document.getElementById(`buy-${idx}`);
-        if (btn) btn.disabled = state.funds < p.cost;
+    function interactWithNearestHub() {
+      let nearest = null, minD = 999;
+      state.hubs.forEach(h => {
+        const d = Math.hypot((h.rx - state.rover.x) * W, (h.ry - state.rover.y) * H);
+        if (d < minD) { minD = d; nearest = h; }
       });
+
+      if (!nearest || minD > 75) {
+        // Mine R&D in open field
+        const gain = 15 + state.hubs.reduce((s, h) => s + h.level * 8, 0);
+        state.funds += gain;
+        spawnParticles(state.rover.x * W, state.rover.y * H, '#00e5ff', `+₹${gain} Cr`);
+        playTone(520, 'sine', 0.12, 0.05);
+        return;
+      }
+
+      // Clear Cyber Threat for Huge Bonus
+      if (nearest.threat) {
+        nearest.threat = false;
+        const reward = Math.round(nearest.cost * 0.6);
+        state.funds += reward;
+        state.gdp += 0.5;
+        spawnParticles(nearest.rx * W, nearest.ry * H, '#38ef7d', `DEFENDED! +₹${reward} Cr`);
+        playTone(780, 'triangle', 0.3, 0.1);
+        document.getElementById('alertBanner').style.display = 'none';
+        return;
+      }
+
+      // Build / Upgrade Hub
+      if (state.funds >= nearest.cost) {
+        state.funds -= nearest.cost;
+        nearest.level++;
+        state.gdp += nearest.gdp;
+        nearest.cost = Math.round(nearest.cost * 1.48);
+        spawnParticles(nearest.rx * W, nearest.ry * H, nearest.color, `LVL ${nearest.level} UPGRADE!`);
+        playTone(440, 'square', 0.25, 0.08);
+        state.shake = 5;
+        if (nearest.id === 'sriharikota') launchRocket(nearest.rx * W, nearest.ry * H);
+        renderDock();
+      } else {
+        playTone(160, 'sawtooth', 0.15, 0.06);
+        spawnParticles(nearest.rx * W, nearest.ry * H, '#ef4444', 'Need More Funds!');
+      }
     }
 
-    function innovate() {
-      state.funds += state.clickPower;
-      state.gdp += 0.005;
-      updateUI();
-    }
+    // Input Handling
+    window.addEventListener('keydown', e => {
+      state.keys[e.code] = true;
+      if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); interactWithNearestHub(); }
+    });
+    window.addEventListener('keyup', e => state.keys[e.code] = false);
 
-    document.getElementById('innovateBtn').onclick = innovate;
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') { e.preventDefault(); innovate(); }
+    canvas.addEventListener('click', e => {
+      const rect = canvas.getBoundingClientRect();
+      state.rover.tx = (e.clientX - rect.left) / W;
+      state.rover.ty = (e.clientY - rect.top) / H;
+      playTone(320, 'sine', 0.08, 0.03);
     });
 
-    document.getElementById('shareBtn').onclick = () => {
-      const msg = `🇮🇳 I took India's GDP to $${state.gdp.toFixed(2)} Trillion (${getRank(state.gdp)}) in BHARAT 2047! Can you beat my score?`;
-      navigator.clipboard.writeText(msg);
-      alert('Score copied! Paste and share with your friends.');
-    };
+    function renderDock() {
+      const dock = document.getElementById('dock');
+      dock.innerHTML = '';
+      state.hubs.forEach(h => {
+        const card = document.createElement('div');
+        card.className = 'hub-card';
+        card.innerHTML = `
+          <h4>${h.name} [Lv.${h.level}]</h4>
+          <p>+₹${h.income * Math.max(1, h.level)} Cr/s | +$${h.gdp}T</p>
+          <span>Upgrade: ₹${h.cost} Cr</span>
+        `;
+        card.onclick = () => {
+          state.rover.tx = h.rx; state.rover.ty = h.ry;
+          setTimeout(interactWithNearestHub, 350);
+        };
+        dock.appendChild(card);
+      });
+    }
 
+    // Random Cyber Threat Event every 22 seconds
     setInterval(() => {
-      if (state.autoIncome > 0) {
-        state.funds += state.autoIncome / 10;
-        state.gdp += (state.autoIncome / 100000);
-        updateUI();
+      const activeHubs = state.hubs.filter(h => h.level > 0 && !h.threat);
+      if (activeHubs.length > 0 && Math.random() > 0.35) {
+        const target = activeHubs[Math.floor(Math.random() * activeHubs.length)];
+        target.threat = true;
+        document.getElementById('alertBanner').style.display = 'block';
+        playTone(220, 'sawtooth', 0.4, 0.1);
       }
+    }, 22000);
+
+    // Passive Income Loop
+    setInterval(() => {
+      let totalGps = 0;
+      state.hubs.forEach(h => {
+        if (!h.threat) totalGps += h.level * h.income;
+      });
+      state.gps = totalGps;
+      state.funds += totalGps / 10;
+      state.gdp += totalGps / 120000;
+
+      document.getElementById('funds').textContent = '₹' + Math.floor(state.funds).toLocaleString('en-IN') + ' Cr';
+      document.getElementById('gdp').textContent = '$' + state.gdp.toFixed(2) + ' T';
+      document.getElementById('gps').textContent = '₹' + totalGps.toLocaleString('en-IN') + ' Cr/s';
+      document.getElementById('rank').textContent = state.gdp >= 35 ? '#1 SUPERPOWER 🏆' : state.gdp >= 20 ? '#2' : state.gdp >= 9 ? '#3' : '#4';
     }, 100);
 
-    renderProjects();
-    updateUI();
+    function draw() {
+      ctx.save();
+      if (state.shake > 0) {
+        ctx.translate((Math.random() - 0.5) * state.shake, (Math.random() - 0.5) * state.shake);
+        state.shake *= 0.85;
+      }
+
+      // Background Grid
+      ctx.fillStyle = '#040812';
+      ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = 'rgba(30, 58, 110, 0.25)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 45) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (let y = 0; y < H; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+      // Draw India Hologram Map
+      ctx.beginPath();
+      indiaOutline.forEach((pt, i) => {
+        const px = pt[0] * W, py = pt[1] * H;
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      });
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(0, 229, 255, 0.06)';
+      ctx.fill();
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#00e5ff';
+      ctx.shadowBlur = 15;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Draw High-Speed Corridors between Hubs
+      ctx.strokeStyle = 'rgba(255, 153, 51, 0.35)';
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      state.hubs.forEach((h, i) => {
+        const hx = h.rx * W, hy = h.ry * H;
+        i === 0 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw Hubs
+      let nearHub = null;
+      state.hubs.forEach(h => {
+        const hx = h.rx * W, hy = h.ry * H;
+        const dist = Math.hypot(hx - state.rover.x * W, hy - state.rover.y * H);
+        if (dist < 75) nearHub = h;
+
+        // Pulse ring
+        ctx.beginPath();
+        ctx.arc(hx, hy, 14 + h.level * 2 + Math.sin(Date.now() / 200) * 3, 0, Math.PI * 2);
+        ctx.fillStyle = h.threat ? 'rgba(239, 68, 68, 0.35)' : h.color + '33';
+        ctx.fill();
+
+        // Core Node
+        ctx.beginPath();
+        ctx.arc(hx, hy, 8 + Math.min(8, h.level), 0, Math.PI * 2);
+        ctx.fillStyle = h.threat ? '#ef4444' : (h.level > 0 ? h.color : '#475569');
+        ctx.fill();
+
+        // Label
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px Segoe UI';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${h.name} (Lv.${h.level})`, hx, hy - 18);
+      });
+
+      // Update Prompt
+      const promptEl = document.getElementById('promptText');
+      if (nearHub) {
+        promptEl.textContent = nearHub.threat
+          ? `🚨 PRESS SPACE TO NEUTRALIZE THREAT AT ${nearHub.name.toUpperCase()}!`
+          : `[SPACE] Build/Upgrade ${nearHub.name} — Cost: ₹${nearHub.cost} Cr`;
+      } else {
+        promptEl.textContent = 'Fly Rover to a City Node (WASD / Arrows / Click) • Press SPACE anywhere to Mine R&D';
+      }
+
+      // Rover Movement
+      const speed = 0.0055;
+      if (state.keys['KeyW'] || state.keys['ArrowUp']) { state.rover.y -= speed; state.rover.ty = state.rover.y; }
+      if (state.keys['KeyS'] || state.keys['ArrowDown']) { state.rover.y += speed; state.rover.ty = state.rover.y; }
+      if (state.keys['KeyA'] || state.keys['ArrowLeft']) { state.rover.x -= speed; state.rover.tx = state.rover.x; }
+      if (state.keys['KeyD'] || state.keys['ArrowRight']) { state.rover.x += speed; state.rover.tx = state.rover.x; }
+
+      state.rover.x += (state.rover.tx - state.rover.x) * 0.08;
+      state.rover.y += (state.rover.ty - state.rover.y) * 0.08;
+
+      // Draw Player Rover
+      const rx = state.rover.x * W, ry = state.rover.y * H;
+      ctx.fillStyle = '#ff9933';
+      ctx.beginPath();
+      ctx.arc(rx, ry, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw Rockets
+      state.rockets.forEach((r, idx) => {
+        r.y += r.vy;
+        r.vy *= 1.04;
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(r.x - 3, r.y - 12, 6, 16);
+        ctx.fillStyle = '#ff9933';
+        ctx.beginPath(); ctx.arc(r.x, r.y + 6, 4 + Math.random() * 3, 0, Math.PI * 2); ctx.fill();
+        if (r.y < -30) state.rockets.splice(idx, 1);
+      });
+
+      // Draw Particles
+      state.particles.forEach((p, idx) => {
+        p.x += p.vx; p.y += p.vy; p.life -= 0.025;
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 4, 4);
+        if (p.text) {
+          ctx.font = 'bold 13px Segoe UI';
+          ctx.fillText(p.text, p.x, p.y - 8);
+        }
+        ctx.globalAlpha = 1;
+        if (p.life <= 0) state.particles.splice(idx, 1);
+      });
+
+      ctx.restore();
+      requestAnimationFrame(draw);
+    }
+
+    renderDock();
+    draw();
   </script>
 </body>
 </html>
