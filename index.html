@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>BHARAT 2047: Command & Conquer</title>
+  <title>BHARAT 2047: Global Superpower Strategy</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; user-select: none; }
     body { background: #040812; color: #eef4ff; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
@@ -11,67 +11,94 @@
     /* Top HUD */
     .hud {
       display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
-      padding: 10px 18px; background: rgba(10, 18, 36, 0.95); border-bottom: 1px solid #1e3a6e;
-      z-index: 10; gap: 10px;
+      padding: 8px 16px; background: rgba(10, 18, 36, 0.96); border-bottom: 1px solid #1e3a6e;
+      z-index: 10; gap: 8px;
     }
-    .brand { font-weight: 800; font-size: 1.15rem; letter-spacing: 1px; background: linear-gradient(90deg, #ff9933, #fff, #38ef7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .metrics { display: flex; gap: 18px; flex-wrap: wrap; }
-    .metric { font-size: 0.85rem; color: #8ca0c4; }
-    .metric b { display: block; font-size: 1.05rem; color: #00e5ff; }
+    .brand { font-weight: 800; font-size: 1.05rem; background: linear-gradient(90deg, #ff9933, #fff, #38ef7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .metrics { display: flex; gap: 14px; flex-wrap: wrap; }
+    .metric { font-size: 0.78rem; color: #8ca0c4; }
+    .metric b { display: block; font-size: 0.98rem; color: #00e5ff; }
     .metric.gdp b { color: #38ef7d; }
     .metric.rank b { color: #ffd700; }
 
-    /* Main Game Viewport */
+    /* Country Switcher Bar */
+    .world-bar {
+      display: flex; justify-content: center; gap: 8px; padding: 8px;
+      background: #071022; border-bottom: 1px solid #172d56; z-index: 10; flex-wrap: wrap;
+    }
+    .country-btn {
+      padding: 6px 14px; border-radius: 99px; border: 1px solid #264885;
+      background: #0d1b38; color: #cbd5e1; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.2s;
+    }
+    .country-btn.active { background: #ff9933; color: #050b16; border-color: #ff9933; box-shadow: 0 0 12px rgba(255,153,51,0.5); }
+    .country-btn.foreign.active { background: #00e5ff; color: #050b16; border-color: #00e5ff; box-shadow: 0 0 12px rgba(0,229,255,0.5); }
+
+    /* Main Viewport */
     .stage { position: relative; flex: 1; width: 100%; overflow: hidden; }
     canvas { display: block; width: 100%; height: 100%; }
 
-    /* Bottom Action Dock */
+    /* Intel Panel for Foreign Countries */
+    .intel-panel {
+      position: absolute; top: 56px; right: 16px; width: 310px; max-width: 90vw;
+      background: rgba(9, 17, 34, 0.94); border: 1px solid #00e5ff; border-radius: 14px;
+      padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 12; display: none;
+    }
+    .intel-panel h3 { font-size: 1rem; color: #00e5ff; margin-bottom: 6px; }
+    .intel-section { margin-top: 8px; font-size: 0.8rem; line-height: 1.4; }
+    .intel-section b { color: #ff9933; display: block; margin-bottom: 2px; }
+    .intel-lesson {
+      margin-top: 10px; padding: 8px; background: rgba(56, 239, 125, 0.1);
+      border-left: 3px solid #38ef7d; font-size: 0.78rem; color: #d1fae5;
+    }
+
+    /* Prompt & Alert */
+    .prompt {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(255, 153, 51, 0.16); border: 1px solid #ff9933; color: #ffcf9e;
+      padding: 6px 14px; border-radius: 99px; font-size: 0.8rem; font-weight: 600;
+      pointer-events: none; text-align: center; white-space: nowrap; max-width: 94vw; overflow: hidden; text-overflow: ellipsis;
+    }
+    .alert-banner {
+      position: absolute; top: 48px; left: 50%; transform: translateX(-50%);
+      background: rgba(239, 68, 68, 0.92); color: #fff; padding: 6px 16px;
+      border-radius: 10px; font-weight: 700; font-size: 0.82rem; display: none;
+    }
+
+    /* Bottom Dock */
     .dock {
-      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 10px; background: rgba(8, 15, 30, 0.9);
-      padding: 10px 14px; border-radius: 16px; border: 1px solid #264885;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.7); z-index: 10; max-width: 95vw; overflow-x: auto;
+      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 8px; background: rgba(8, 15, 30, 0.92);
+      padding: 8px 12px; border-radius: 14px; border: 1px solid #264885;
+      z-index: 10; max-width: 96vw; overflow-x: auto;
     }
     .hub-card {
       background: #0e1b36; border: 1px solid #1f3b70; border-radius: 10px;
-      padding: 8px 12px; min-width: 145px; cursor: pointer; transition: 0.15s; text-align: left;
+      padding: 7px 11px; min-width: 145px; cursor: pointer; transition: 0.15s;
     }
-    .hub-card.active { border-color: #ff9933; box-shadow: 0 0 14px rgba(255,153,51,0.4); transform: translateY(-3px); }
-    .hub-card h4 { font-size: 0.85rem; color: #fff; }
-    .hub-card p { font-size: 0.72rem; color: #8ca0c4; margin: 2px 0; }
-    .hub-card span { font-size: 0.78rem; font-weight: 700; color: #38ef7d; }
-
-    /* Floating Prompt */
-    .prompt {
-      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-      background: rgba(255, 153, 51, 0.16); border: 1px solid #ff9933; color: #ffcf9e;
-      padding: 8px 16px; border-radius: 99px; font-size: 0.85rem; font-weight: 600;
-      pointer-events: none; text-align: center;
-    }
-    .alert-banner {
-      position: absolute; top: 60px; left: 50%; transform: translateX(-50%);
-      background: rgba(239, 68, 68, 0.92); color: #fff; padding: 8px 18px;
-      border-radius: 10px; font-weight: 700; font-size: 0.88rem; display: none;
-      animation: pulse 0.8s infinite alternate;
-    }
-    @keyframes pulse { from { transform: translateX(-50%) scale(1); } to { transform: translateX(-50%) scale(1.05); } }
+    .hub-card:hover { border-color: #ff9933; }
+    .hub-card h4 { font-size: 0.82rem; color: #fff; }
+    .hub-card p { font-size: 0.7rem; color: #8ca0c4; margin: 2px 0; }
+    .hub-card span { font-size: 0.75rem; font-weight: 700; color: #38ef7d; }
   </style>
 </head>
 <body>
   <div class="hud">
-    <div class="brand">🇮🇳 BHARAT 2047 // COMMAND</div>
+    <div class="brand">🇮🇳 BHARAT 2047 // GLOBAL STRATEGY</div>
     <div class="metrics">
-      <div class="metric">FUNDS<b id="funds">₹250 Cr</b></div>
-      <div class="metric gdp">INDIA GDP<b id="gdp">$4.30 T</b></div>
-      <div class="metric rank">GLOBAL RANK<b id="rank">#4</b></div>
-      <div class="metric">OUTPUT<b id="gps">₹0 Cr/s</b></div>
+      <div class="metric">BHARAT FUNDS<b id="funds">₹300 Cr</b></div>
+      <div class="metric gdp">BHARAT GDP<b id="gdp">$4.30 T</b></div>
+      <div class="metric rank">GLOBAL RANK<b id="rank">#4 (Target: #1 > $29T)</b></div>
+      <div class="metric">INTEL POINTS<b id="intel">0 🧠</b></div>
     </div>
   </div>
 
+  <div class="world-bar" id="worldBar"></div>
+
   <div class="stage">
     <canvas id="gameCanvas"></canvas>
-    <div class="prompt" id="promptText">Use WASD / Arrows or Click Map to Fly Rover • Press SPACE to Build/Upgrade</div>
-    <div class="alert-banner" id="alertBanner">⚠️ CYBER THREAT DETECTED! Fly Rover to Flashing Node to Defend!</div>
+    <div class="prompt" id="promptText">Fly Rover (WASD / Arrows / Click) • Press SPACE to Build or Scan Strategy</div>
+    <div class="alert-banner" id="alertBanner">⚠️ CYBER THREAT ON BHARAT! Switch to India & Defend Flashing Node!</div>
+    <div class="intel-panel" id="intelPanel"></div>
     <div class="dock" id="dock"></div>
   </div>
 
@@ -79,173 +106,272 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     let W, H;
+    function resize() { W = canvas.width = canvas.parentElement.clientWidth; H = canvas.height = canvas.parentElement.clientHeight; }
+    window.addEventListener('resize', resize); resize();
 
-    function resize() {
-      W = canvas.width = canvas.parentElement.clientWidth;
-      H = canvas.height = canvas.parentElement.clientHeight;
-    }
-    window.addEventListener('resize', resize);
-    resize();
-
-    // Synthesized Sound Engine (Zero external files)
+    // Audio Synthesizer
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playTone(freq, type, duration, vol = 0.08) {
+    function playTone(freq, type, duration, vol = 0.07) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
       gain.gain.setValueAtTime(vol, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
       osc.connect(gain); gain.connect(audioCtx.destination);
       osc.start(); osc.stop(audioCtx.currentTime + duration);
     }
 
-    // Game State
+    // World Data (Real Economic Breakdown + Game Hubs)
+    const worlds = {
+      india: {
+        name: '🇮🇳 BHARAT (Home)', isHome: true, color: '#ff9933', gdpTarget: '$4.30 T (Growing)',
+        outline: [[0.45,0.08],[0.51,0.13],[0.54,0.22],[0.62,0.29],[0.76,0.30],[0.83,0.26],[0.85,0.34],[0.77,0.41],[0.70,0.39],[0.67,0.47],[0.60,0.56],[0.55,0.69],[0.49,0.87],[0.45,0.86],[0.39,0.68],[0.36,0.53],[0.27,0.50],[0.29,0.43],[0.36,0.38],[0.39,0.26],[0.41,0.14]],
+        hubs: [
+          { id: 'ladakh', name: 'Ladakh Clean Grid', rx: 0.46, ry: 0.16, level: 0, cost: 150, income: 40, gdp: 0.4, color: '#38ef7d', threat: false, note: 'Inspired by France/China clean energy grids' },
+          { id: 'delhi', name: 'Delhi Sovereign AI', rx: 0.48, ry: 0.31, level: 1, cost: 220, income: 55, gdp: 0.6, color: '#00e5ff', threat: false, note: 'Countering US Silicon Valley AI dominance' },
+          { id: 'dholera', name: 'Dholera 3nm Chip Fab', rx: 0.33, ry: 0.48, level: 0, cost: 550, income: 160, gdp: 1.4, color: '#ff9933', threat: false, note: 'Capturing global semiconductor supply chain' },
+          { id: 'bengaluru', name: 'Bengaluru Deep-Tech', rx: 0.46, ry: 0.72, level: 0, cost: 1300, income: 420, gdp: 3.0, color: '#a855f7', threat: false, note: 'High-value IP & software product exports' },
+          { id: 'sriharikota', name: 'ISRO Heavy Spaceport', rx: 0.54, ry: 0.75, level: 0, cost: 3200, income: 1200, gdp: 6.2, color: '#f43f5e', threat: false, note: 'Commercial satellite & lunar launch monopoly' }
+        ]
+      },
+      usa: {
+        name: '🇺🇸 USA ($29T)', isHome: false, color: '#3b82f6', gdpTarget: '$29.2 Trillion (#1)',
+        earns: 'Big Tech IP (Apple, Nvidia, Google), Dollar Reserve, Defense & Aerospace Exports, Financial Markets.',
+        spends: '3.5% of GDP on R&D ($900B+), $880B Defense Tech, AI Chips (CHIPS Act), Private Space (SpaceX).',
+        lesson: 'India Lesson: Owning core IP (AI models, Chip designs, OS) creates 10x higher profit margins than outsourcing!',
+        outline: [[0.22,0.25],[0.45,0.25],[0.68,0.24],[0.78,0.22],[0.74,0.42],[0.67,0.62],[0.63,0.72],[0.55,0.60],[0.45,0.63],[0.38,0.72],[0.26,0.58],[0.20,0.42]],
+        hubs: [
+          { id: 'sv', name: 'Silicon Valley AI & Chips', rx: 0.24, ry: 0.45, scanned: false, intelGain: 25, budget: '$450B/yr R&D', detail: 'Nvidia, Apple & OpenAI generate trillions from software & chip IP.' },
+          { id: 'tx', name: 'Texas Space & Energy', rx: 0.45, ry: 0.62, scanned: false, intelGain: 25, budget: '$180B/yr', detail: 'Reusable rockets (Starbase) & shale energy exports.' },
+          { id: 'dc', name: 'Pentagon & DARPA Labs', rx: 0.68, ry: 0.42, scanned: false, intelGain: 30, budget: '$880B/yr', detail: 'DARPA funded GPS & Internet before commercializing them.' }
+        ]
+      },
+      china: {
+        name: '🇨🇳 CHINA ($19T)', isHome: false, color: '#ef4444', gdpTarget: '$19.5 Trillion (#2)',
+        earns: 'Global Manufacturing Workshop (30% of world output), EVs, Solar Panels, Batteries & Rare Earths.',
+        spends: 'Massive Infrastructure (45,000 km High-Speed Rail), Green Tech Subsidies, State Semiconductor Funds.',
+        lesson: 'India Lesson: Building world-class ports, bullet freight & massive factories turns a nation into an export powerhouse!',
+        outline: [[0.25,0.35],[0.42,0.28],[0.58,0.22],[0.74,0.18],[0.78,0.32],[0.72,0.48],[0.68,0.65],[0.52,0.72],[0.36,0.62],[0.24,0.50]],
+        hubs: [
+          { id: 'sz', name: 'Shenzhen Hardware Hub', rx: 0.62, ry: 0.65, scanned: false, intelGain: 25, budget: '$320B/yr', detail: 'Fastest electronics prototyping & EV battery ecosystem.' },
+          { id: 'bj', name: 'HSR & Mega-Infra Grid', rx: 0.64, ry: 0.34, scanned: false, intelGain: 25, budget: '$1.1T Infra', detail: '45,000 km High-Speed Rail slashes logistics cost.' },
+          { id: 'xj', name: 'Solar & Rare Earth Belt', rx: 0.34, ry: 0.38, scanned: false, intelGain: 30, budget: '$210B/yr', detail: 'Controls 80% of global solar panel & lithium processing.' }
+        ]
+      },
+      russia: {
+        name: '🇷🇺 RUSSIA ($2.1T)', isHome: false, color: '#a855f7', gdpTarget: '$2.1 Trillion (Resource & Space)',
+        earns: 'Oil, Natural Gas, Nuclear Reactors (Rosatom), Fertilizers, Wheat & Heavy Defense Systems.',
+        spends: 'Heavy Metallurgy, Arctic Shipping Routes, Rocket Engines & Nuclear Icebreakers.',
+        lesson: 'India Lesson: Energy independence & strong indigenous defense engineering protect sovereignty during global crises.',
+        outline: [[0.18,0.32],[0.35,0.22],[0.58,0.18],[0.82,0.22],[0.86,0.42],[0.70,0.55],[0.48,0.56],[0.28,0.58],[0.16,0.48]],
+        hubs: [
+          { id: 'ros', name: 'Rosatom Nuclear Tech', rx: 0.30, ry: 0.42, scanned: false, intelGain: 25, budget: '$45B/yr', detail: 'Builds 70% of global nuclear power reactor exports.' },
+          { id: 'sib', name: 'Siberian Energy & Minerals', rx: 0.56, ry: 0.36, scanned: false, intelGain: 25, budget: '$240B Exports', detail: 'Massive natural gas, titanium, and palladium reserves.' },
+          { id: 'vos', name: 'Vostochny Space & Cryo', rx: 0.76, ry: 0.44, scanned: false, intelGain: 30, budget: '$35B/yr', detail: 'Deep expertise in heavy rocket propulsion & metallurgy.' }
+        ]
+      },
+      france: {
+        name: '🇫🇷 FRANCE ($3.2T)', isHome: false, color: '#38ef7d', gdpTarget: '$3.2 Trillion (Aerospace & Nuclear)',
+        earns: 'Aerospace (Airbus), Luxury & Fashion Brands, Nuclear Electricity Exports, Tourism & Pharmaceuticals.',
+        spends: '70% Nuclear Electricity Grid (EDF), High-Speed TGV Rail, Green Hydrogen & AI Research.',
+        lesson: 'India Lesson: Clean, cheap 24/7 nuclear power + global luxury/consumer brands drive high per-capita wealth!',
+        outline: [[0.44,0.20],[0.56,0.24],[0.64,0.38],[0.60,0.58],[0.52,0.72],[0.38,0.68],[0.34,0.50],[0.32,0.34]],
+        hubs: [
+          { id: 'tou', name: 'Toulouse Aerospace (Airbus)', rx: 0.44, ry: 0.62, scanned: false, intelGain: 25, budget: '$85B/yr', detail: 'World leader in commercial aviation & satellite manufacturing.' },
+          { id: 'edf', name: '70% Nuclear Clean Grid', rx: 0.52, ry: 0.44, scanned: false, intelGain: 25, budget: '$110B/yr', detail: 'Lowest carbon electricity in Europe; exports power to neighbors.' },
+          { id: 'par', name: 'Paris Luxury & Quantum', rx: 0.48, ry: 0.30, scanned: false, intelGain: 30, budget: '$150B/yr', detail: 'Global luxury giants (LVMH) + Mistral AI innovation.' }
+        ]
+      }
+    };
+
     const state = {
-      funds: 250,
+      currentWorld: 'india',
+      funds: 300,
       gdp: 4.30,
-      gps: 0,
+      intel: 0,
       shake: 0,
-      rover: { x: 0.5, y: 0.52, tx: 0.5, ty: 0.52, angle: 0 },
-      hubs: [
-        { id: 'ladakh', name: 'Ladakh Solar Grid', rx: 0.46, ry: 0.16, level: 0, cost: 150, income: 35, gdp: 0.3, color: '#38ef7d', threat: false },
-        { id: 'delhi', name: 'Delhi Quantum AI', rx: 0.48, ry: 0.31, level: 1, cost: 200, income: 45, gdp: 0.4, color: '#00e5ff', threat: false },
-        { id: 'dholera', name: 'Dholera Chip Fab', rx: 0.33, ry: 0.48, level: 0, cost: 500, income: 140, gdp: 1.1, color: '#ff9933', threat: false },
-        { id: 'bengaluru', name: 'Bengaluru Space-Tech', rx: 0.46, ry: 0.72, level: 0, cost: 1200, income: 380, gdp: 2.5, color: '#a855f7', threat: false },
-        { id: 'sriharikota', name: 'ISRO Heavy Port', rx: 0.54, ry: 0.75, level: 0, cost: 3000, income: 1100, gdp: 5.5, color: '#f43f5e', threat: false }
-      ],
+      rover: { x: 0.48, y: 0.45, tx: 0.48, ty: 0.45 },
       particles: [],
       rockets: [],
       keys: {}
     };
 
-    // Stylized India Polygon Coordinates (Normalized 0..1)
-    const indiaOutline = [
-      [0.45, 0.08], [0.51, 0.13], [0.54, 0.22], [0.62, 0.29], [0.76, 0.30],
-      [0.83, 0.26], [0.85, 0.34], [0.77, 0.41], [0.70, 0.39], [0.67, 0.47],
-      [0.60, 0.56], [0.55, 0.69], [0.49, 0.87], [0.45, 0.86], [0.39, 0.68],
-      [0.36, 0.53], [0.27, 0.50], [0.29, 0.43], [0.36, 0.38], [0.39, 0.26],
-      [0.41, 0.14]
-    ];
-
     function spawnParticles(x, y, color, text = '') {
       for (let i = 0; i < 14; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const s = 1 + Math.random() * 3.5;
+        const a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 3.5;
         state.particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, color, text: i === 0 ? text : '' });
       }
     }
 
-    function launchRocket(x, y) {
-      state.rockets.push({ x, y, vy: -1.5, trail: [] });
-      playTone(140, 'sawtooth', 0.8, 0.1);
-      state.shake = 8;
+    function switchWorld(key) {
+      state.currentWorld = key;
+      state.rover.x = state.rover.tx = 0.5;
+      state.rover.y = state.rover.ty = 0.48;
+      playTone(480, 'sine', 0.15, 0.06);
+      renderWorldBar();
+      renderIntelPanel();
+      renderDock();
     }
 
-    function interactWithNearestHub() {
+    function renderWorldBar() {
+      const bar = document.getElementById('worldBar');
+      bar.innerHTML = '';
+      Object.keys(worlds).forEach(k => {
+        const w = worlds[k];
+        const btn = document.createElement('button');
+        btn.className = `country-btn ${w.isHome ? '' : 'foreign'} ${state.currentWorld === k ? 'active' : ''}`;
+        btn.textContent = w.name;
+        btn.onclick = () => switchWorld(k);
+        bar.appendChild(btn);
+      });
+    }
+
+    function renderIntelPanel() {
+      const panel = document.getElementById('intelPanel');
+      const w = worlds[state.currentWorld];
+      if (w.isHome) { panel.style.display = 'none'; return; }
+      panel.style.display = 'block';
+      panel.innerHTML = `
+        <h3>📊 ${w.name} — Economic Intel</h3>
+        <div class="intel-section"><b>💰 Kahan Se Kamate Hain (Revenue):</b>${w.earns}</div>
+        <div class="intel-section"><b>🏗️ Kahan Kharch Karte Hain (Budget):</b>${w.spends}</div>
+        <div class="intel-lesson"><b>🇮🇳 Bharat Strategy:</b> ${w.lesson}</div>
+      `;
+    }
+
+    function interact() {
+      const w = worlds[state.currentWorld];
       let nearest = null, minD = 999;
-      state.hubs.forEach(h => {
+      w.hubs.forEach(h => {
         const d = Math.hypot((h.rx - state.rover.x) * W, (h.ry - state.rover.y) * H);
         if (d < minD) { minD = d; nearest = h; }
       });
 
-      if (!nearest || minD > 75) {
-        // Mine R&D in open field
-        const gain = 15 + state.hubs.reduce((s, h) => s + h.level * 8, 0);
+      if (!nearest || minD > 80) {
+        const gain = 20 + state.intel * 2;
         state.funds += gain;
         spawnParticles(state.rover.x * W, state.rover.y * H, '#00e5ff', `+₹${gain} Cr`);
-        playTone(520, 'sine', 0.12, 0.05);
+        playTone(520, 'sine', 0.1, 0.04);
         return;
       }
 
-      // Clear Cyber Threat for Huge Bonus
+      // Foreign Country: Scan Strategy to gain Intel Points & Funds!
+      if (!w.isHome) {
+        if (!nearest.scanned) {
+          nearest.scanned = true;
+          state.intel += nearest.intelGain;
+          const bonusFunds = nearest.intelGain * 15;
+          state.funds += bonusFunds;
+          spawnParticles(nearest.rx * W, nearest.ry * H, '#38ef7d', `INTEL +${nearest.intelGain} 🧠 | +₹${bonusFunds} Cr`);
+          playTone(760, 'triangle', 0.3, 0.09);
+          renderDock();
+        } else {
+          spawnParticles(nearest.rx * W, nearest.ry * H, '#00e5ff', 'Already Scanned! Apply in Bharat 🇮🇳');
+        }
+        return;
+      }
+
+      // India: Neutralize Threat
       if (nearest.threat) {
         nearest.threat = false;
-        const reward = Math.round(nearest.cost * 0.6);
-        state.funds += reward;
-        state.gdp += 0.5;
+        const reward = Math.round(nearest.cost * 0.65);
+        state.funds += reward; state.gdp += 0.6;
         spawnParticles(nearest.rx * W, nearest.ry * H, '#38ef7d', `DEFENDED! +₹${reward} Cr`);
-        playTone(780, 'triangle', 0.3, 0.1);
+        playTone(800, 'triangle', 0.3, 0.1);
         document.getElementById('alertBanner').style.display = 'none';
         return;
       }
 
-      // Build / Upgrade Hub
-      if (state.funds >= nearest.cost) {
-        state.funds -= nearest.cost;
+      // India: Build / Upgrade (Intel Points give discount & extra GDP boost!)
+      const discount = Math.min(0.4, state.intel * 0.002);
+      const finalCost = Math.round(nearest.cost * (1 - discount));
+
+      if (state.funds >= finalCost) {
+        state.funds -= finalCost;
         nearest.level++;
-        state.gdp += nearest.gdp;
-        nearest.cost = Math.round(nearest.cost * 1.48);
-        spawnParticles(nearest.rx * W, nearest.ry * H, nearest.color, `LVL ${nearest.level} UPGRADE!`);
+        const intelMultiplier = 1 + (state.intel * 0.01);
+        state.gdp += nearest.gdp * intelMultiplier;
+        nearest.cost = Math.round(nearest.cost * 1.46);
+        spawnParticles(nearest.rx * W, nearest.ry * H, nearest.color, `LVL ${nearest.level} BUILT!`);
         playTone(440, 'square', 0.25, 0.08);
         state.shake = 5;
-        if (nearest.id === 'sriharikota') launchRocket(nearest.rx * W, nearest.ry * H);
+        if (nearest.id === 'sriharikota') state.rockets.push({ x: nearest.rx * W, y: nearest.ry * H, vy: -1.6 });
         renderDock();
       } else {
         playTone(160, 'sawtooth', 0.15, 0.06);
-        spawnParticles(nearest.rx * W, nearest.ry * H, '#ef4444', 'Need More Funds!');
+        spawnParticles(nearest.rx * W, nearest.ry * H, '#ef4444', `Need ₹${finalCost} Cr!`);
       }
     }
-
-    // Input Handling
-    window.addEventListener('keydown', e => {
-      state.keys[e.code] = true;
-      if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); interactWithNearestHub(); }
-    });
-    window.addEventListener('keyup', e => state.keys[e.code] = false);
-
-    canvas.addEventListener('click', e => {
-      const rect = canvas.getBoundingClientRect();
-      state.rover.tx = (e.clientX - rect.left) / W;
-      state.rover.ty = (e.clientY - rect.top) / H;
-      playTone(320, 'sine', 0.08, 0.03);
-    });
 
     function renderDock() {
       const dock = document.getElementById('dock');
       dock.innerHTML = '';
-      state.hubs.forEach(h => {
+      const w = worlds[state.currentWorld];
+      const discount = Math.min(0.4, state.intel * 0.002);
+
+      w.hubs.forEach(h => {
         const card = document.createElement('div');
         card.className = 'hub-card';
-        card.innerHTML = `
-          <h4>${h.name} [Lv.${h.level}]</h4>
-          <p>+₹${h.income * Math.max(1, h.level)} Cr/s | +$${h.gdp}T</p>
-          <span>Upgrade: ₹${h.cost} Cr</span>
-        `;
+        if (w.isHome) {
+          const finalCost = Math.round(h.cost * (1 - discount));
+          card.innerHTML = `
+            <h4>${h.name} [Lv.${h.level}]</h4>
+            <p>+₹${h.income * Math.max(1, h.level)} Cr/s | +$${h.gdp}T</p>
+            <span>Build: ₹${finalCost} Cr ${discount > 0 ? '(-' + Math.round(discount*100) + '% Intel)' : ''}</span>
+          `;
+        } else {
+          card.innerHTML = `
+            <h4>${h.name} ${h.scanned ? '✅' : '🔍'}</h4>
+            <p>${h.budget}</p>
+            <span>${h.scanned ? 'Strategy Learned!' : 'Scan for +' + h.intelGain + ' Intel 🧠'}</span>
+          `;
+        }
         card.onclick = () => {
           state.rover.tx = h.rx; state.rover.ty = h.ry;
-          setTimeout(interactWithNearestHub, 350);
+          setTimeout(interact, 320);
         };
         dock.appendChild(card);
       });
     }
 
-    // Random Cyber Threat Event every 22 seconds
-    setInterval(() => {
-      const activeHubs = state.hubs.filter(h => h.level > 0 && !h.threat);
-      if (activeHubs.length > 0 && Math.random() > 0.35) {
-        const target = activeHubs[Math.floor(Math.random() * activeHubs.length)];
-        target.threat = true;
-        document.getElementById('alertBanner').style.display = 'block';
-        playTone(220, 'sawtooth', 0.4, 0.1);
-      }
-    }, 22000);
+    window.addEventListener('keydown', e => {
+      state.keys[e.code] = true;
+      if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); interact(); }
+    });
+    window.addEventListener('keyup', e => state.keys[e.code] = false);
+    canvas.addEventListener('click', e => {
+      const rect = canvas.getBoundingClientRect();
+      state.rover.tx = (e.clientX - rect.left) / W;
+      state.rover.ty = (e.clientY - rect.top) / H;
+    });
 
-    // Passive Income Loop
+    // Cyber Threat on India
+    setInterval(() => {
+      const indiaHubs = worlds.india.hubs.filter(h => h.level > 0 && !h.threat);
+      if (indiaHubs.length > 0 && Math.random() > 0.4) {
+        indiaHubs[Math.floor(Math.random() * indiaHubs.length)].threat = true;
+        document.getElementById('alertBanner').style.display = 'block';
+        playTone(210, 'sawtooth', 0.35, 0.08);
+      }
+    }, 25000);
+
+    // Passive Income & Rank Loop
     setInterval(() => {
       let totalGps = 0;
-      state.hubs.forEach(h => {
-        if (!h.threat) totalGps += h.level * h.income;
-      });
-      state.gps = totalGps;
-      state.funds += totalGps / 10;
-      state.gdp += totalGps / 120000;
+      worlds.india.hubs.forEach(h => { if (!h.threat) totalGps += h.level * h.income; });
+      const intelBoost = 1 + (state.intel * 0.008);
+      state.funds += (totalGps * intelBoost) / 10;
+      state.gdp += (totalGps * intelBoost) / 110000;
 
       document.getElementById('funds').textContent = '₹' + Math.floor(state.funds).toLocaleString('en-IN') + ' Cr';
       document.getElementById('gdp').textContent = '$' + state.gdp.toFixed(2) + ' T';
-      document.getElementById('gps').textContent = '₹' + totalGps.toLocaleString('en-IN') + ' Cr/s';
-      document.getElementById('rank').textContent = state.gdp >= 35 ? '#1 SUPERPOWER 🏆' : state.gdp >= 20 ? '#2' : state.gdp >= 9 ? '#3' : '#4';
+      document.getElementById('intel').textContent = state.intel + ' 🧠';
+
+      let rankText = '#4 (Next: France $3.2T Passed!)';
+      if (state.gdp >= 29.2) rankText = '#1 GLOBAL SUPERPOWER 🏆 (Beat USA!)';
+      else if (state.gdp >= 19.5) rankText = '#2 (Beat China! Target USA $29.2T)';
+      else if (state.gdp >= 5.0) rankText = '#3 (Target China $19.5T)';
+      document.getElementById('rank').textContent = rankText;
     }, 100);
 
     function draw() {
@@ -255,118 +381,92 @@
         state.shake *= 0.85;
       }
 
-      // Background Grid
-      ctx.fillStyle = '#040812';
-      ctx.fillRect(0, 0, W, H);
-      ctx.strokeStyle = 'rgba(30, 58, 110, 0.25)';
-      ctx.lineWidth = 1;
+      ctx.fillStyle = '#040812'; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = 'rgba(30, 58, 110, 0.22)';
       for (let x = 0; x < W; x += 45) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
       for (let y = 0; y < H; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
 
-      // Draw India Hologram Map
+      const w = worlds[state.currentWorld];
+
+      // Country Hologram Map
       ctx.beginPath();
-      indiaOutline.forEach((pt, i) => {
+      w.outline.forEach((pt, i) => {
         const px = pt[0] * W, py = pt[1] * H;
         i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       });
       ctx.closePath();
-      ctx.fillStyle = 'rgba(0, 229, 255, 0.06)';
+      ctx.fillStyle = w.color + '14';
       ctx.fill();
-      ctx.strokeStyle = '#00e5ff';
+      ctx.strokeStyle = w.color;
       ctx.lineWidth = 2.5;
-      ctx.shadowColor = '#00e5ff';
-      ctx.shadowBlur = 15;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // Draw High-Speed Corridors between Hubs
-      ctx.strokeStyle = 'rgba(255, 153, 51, 0.35)';
-      ctx.setLineDash([6, 6]);
-      ctx.beginPath();
-      state.hubs.forEach((h, i) => {
-        const hx = h.rx * W, hy = h.ry * H;
-        i === 0 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
-      });
-      ctx.stroke();
-      ctx.setLineDash([]);
+      ctx.shadowColor = w.color; ctx.shadowBlur = 14;
+      ctx.stroke(); ctx.shadowBlur = 0;
 
       // Draw Hubs
       let nearHub = null;
-      state.hubs.forEach(h => {
+      w.hubs.forEach(h => {
         const hx = h.rx * W, hy = h.ry * H;
-        const dist = Math.hypot(hx - state.rover.x * W, hy - state.rover.y * H);
-        if (dist < 75) nearHub = h;
+        if (Math.hypot(hx - state.rover.x * W, hy - state.rover.y * H) < 80) nearHub = h;
 
-        // Pulse ring
         ctx.beginPath();
-        ctx.arc(hx, hy, 14 + h.level * 2 + Math.sin(Date.now() / 200) * 3, 0, Math.PI * 2);
-        ctx.fillStyle = h.threat ? 'rgba(239, 68, 68, 0.35)' : h.color + '33';
+        ctx.arc(hx, hy, 15 + Math.sin(Date.now() / 220) * 3, 0, Math.PI * 2);
+        ctx.fillStyle = h.threat ? 'rgba(239,68,68,0.35)' : (w.isHome ? h.color + '33' : 'rgba(0,229,255,0.25)');
         ctx.fill();
 
-        // Core Node
         ctx.beginPath();
-        ctx.arc(hx, hy, 8 + Math.min(8, h.level), 0, Math.PI * 2);
-        ctx.fillStyle = h.threat ? '#ef4444' : (h.level > 0 ? h.color : '#475569');
+        ctx.arc(hx, hy, 9, 0, Math.PI * 2);
+        ctx.fillStyle = h.threat ? '#ef4444' : (w.isHome ? (h.level > 0 ? h.color : '#475569') : (h.scanned ? '#38ef7d' : '#00e5ff'));
         ctx.fill();
 
-        // Label
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px Segoe UI';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${h.name} (Lv.${h.level})`, hx, hy - 18);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center';
+        const tag = w.isHome ? `${h.name} (Lv.${h.level})` : `${h.name} [${h.budget}]`;
+        ctx.fillText(tag, hx, hy - 18);
+        if (!w.isHome) {
+          ctx.fillStyle = '#94a3b8'; ctx.font = '11px Segoe UI';
+          ctx.fillText(h.detail, hx, hy + 24);
+        }
       });
 
-      // Update Prompt
       const promptEl = document.getElementById('promptText');
       if (nearHub) {
-        promptEl.textContent = nearHub.threat
-          ? `🚨 PRESS SPACE TO NEUTRALIZE THREAT AT ${nearHub.name.toUpperCase()}!`
-          : `[SPACE] Build/Upgrade ${nearHub.name} — Cost: ₹${nearHub.cost} Cr`;
+        if (w.isHome) {
+          promptEl.textContent = nearHub.threat
+            ? `🚨 PRESS SPACE TO DEFEND ${nearHub.name.toUpperCase()}!`
+            : `[SPACE] Build ${nearHub.name} — ${nearHub.note}`;
+        } else {
+          promptEl.textContent = nearHub.scanned
+            ? `✅ Strategy Extracted! Switch to 🇮🇳 BHARAT to invest with discount & boost!`
+            : `[SPACE] Scan ${nearHub.name} to learn their economic secret (+${nearHub.intelGain} Intel 🧠)`;
+        }
       } else {
-        promptEl.textContent = 'Fly Rover to a City Node (WASD / Arrows / Click) • Press SPACE anywhere to Mine R&D';
+        promptEl.textContent = w.isHome
+          ? 'Fly Rover to Indian Hubs to Build • Switch Countries at Top to Learn Global Strategies!'
+          : `Exploring ${w.name} • Fly Rover to Nodes & Press SPACE to Extract Economic Intel!`;
       }
 
-      // Rover Movement
+      // Rover Move
       const speed = 0.0055;
       if (state.keys['KeyW'] || state.keys['ArrowUp']) { state.rover.y -= speed; state.rover.ty = state.rover.y; }
       if (state.keys['KeyS'] || state.keys['ArrowDown']) { state.rover.y += speed; state.rover.ty = state.rover.y; }
       if (state.keys['KeyA'] || state.keys['ArrowLeft']) { state.rover.x -= speed; state.rover.tx = state.rover.x; }
       if (state.keys['KeyD'] || state.keys['ArrowRight']) { state.rover.x += speed; state.rover.tx = state.rover.x; }
-
       state.rover.x += (state.rover.tx - state.rover.x) * 0.08;
       state.rover.y += (state.rover.ty - state.rover.y) * 0.08;
 
-      // Draw Player Rover
       const rx = state.rover.x * W, ry = state.rover.y * H;
-      ctx.fillStyle = '#ff9933';
-      ctx.beginPath();
-      ctx.arc(rx, ry, 10, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      ctx.fillStyle = '#ff9933'; ctx.beginPath(); ctx.arc(rx, ry, 10, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
 
-      // Draw Rockets
+      // Rockets & Particles
       state.rockets.forEach((r, idx) => {
-        r.y += r.vy;
-        r.vy *= 1.04;
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(r.x - 3, r.y - 12, 6, 16);
-        ctx.fillStyle = '#ff9933';
-        ctx.beginPath(); ctx.arc(r.x, r.y + 6, 4 + Math.random() * 3, 0, Math.PI * 2); ctx.fill();
+        r.y += r.vy; r.vy *= 1.04;
+        ctx.fillStyle = '#fff'; ctx.fillRect(r.x - 3, r.y - 12, 6, 16);
         if (r.y < -30) state.rockets.splice(idx, 1);
       });
-
-      // Draw Particles
       state.particles.forEach((p, idx) => {
-        p.x += p.vx; p.y += p.vy; p.life -= 0.025;
-        ctx.globalAlpha = Math.max(0, p.life);
-        ctx.fillStyle = p.color;
-        ctx.fillRect(p.x, p.y, 4, 4);
-        if (p.text) {
-          ctx.font = 'bold 13px Segoe UI';
-          ctx.fillText(p.text, p.x, p.y - 8);
-        }
+        p.x += p.vx; p.y += p.vy; p.life -= 0.024;
+        ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4);
+        if (p.text) { ctx.font = 'bold 13px Segoe UI'; ctx.fillText(p.text, p.x, p.y - 8); }
         ctx.globalAlpha = 1;
         if (p.life <= 0) state.particles.splice(idx, 1);
       });
@@ -375,6 +475,7 @@
       requestAnimationFrame(draw);
     }
 
+    renderWorldBar();
     renderDock();
     draw();
   </script>
